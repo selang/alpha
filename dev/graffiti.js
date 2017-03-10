@@ -1,8 +1,7 @@
 // ==UserScript==
 // @name         涂鸦by SeLang
-// @namespace    https://raw.githubusercontent.com/selang/alpha/master/dev/graffiti.js
+// @namespace    http://cmsv1.findmd5.com/
 // @version      0.1
-// @updateURL    https://raw.githubusercontent.com/selang/alpha/master/dev/graffiti.js
 // @description  涂鸦之作，节约浏览网页的时间成本。目前针对蕾丝猫里详情页的图片进行了聚合，不用手动翻页。
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
