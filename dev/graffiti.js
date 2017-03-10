@@ -2,7 +2,7 @@
 // @name         涂鸦by SeLang
 // @namespace    http://cmsv1.findmd5.com/
 // @version      0.1
-// @description  涂鸦之作，节约浏览网页的时间成本。目前针对蕾丝猫里详情页的美女图片进行了聚合，不用手动翻页。
+// @description  涂鸦之作，节约浏览网页的时间成本。目前针对蕾丝猫里详情页的美女图片进行了聚合，不用手动翻页。QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
