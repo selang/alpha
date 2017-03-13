@@ -115,6 +115,7 @@ function query(objContainer, jqObj) {
         if ('http://i.ajjc.net/k/1178/' === imgSrc) {
             return 'end page';
         }
+        $(this)[0].style="width: 100%;height: 100%";
         objContainer.append('<div>' + $(this).prop('outerHTML') + '</div>');
     });
 }
