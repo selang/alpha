@@ -1,9 +1,8 @@
 // ==UserScript==
 // @name         涂鸦by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.2
-// @description  涂鸦之作，节约浏览网页的时间成本。目前针对蕾丝猫里详情页的美女图片进行了聚合，不用手动翻页。
-// @description  QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
+// @version      0.3
+// @description  涂鸦之作，节约浏览网页的时间成本。目前针对蕾丝猫里详情页的美女图片进行了聚合，不用手动翻页。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
@@ -36,12 +35,12 @@
 })();
 
 function currentWindowImpl(preUrl, subfixUrl) {
-    dependenceJQuery(window, injectBtn(window,function (e) {
-        if($('#injectaggregatBtn').val()==='聚合显示'){
+    dependenceJQuery(window, injectBtn(window, function (e) {
+        if ($('#injectaggregatBtn').val() === '聚合显示') {
             $('#injectaggregatBtn').val('聚合隐藏');
             collectPics(window, preUrl, subfixUrl);
             $('#c_container').show();
-        }else {
+        } else {
             $('#injectaggregatBtn').val('聚合显示');
             $('#c_container').hide();
         }
@@ -136,8 +135,13 @@ function obtainHtml(url, sucess, i) {
 }
 
 
-function injectBtn(e,callback) {
-    $('.thread-tr').after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
+function injectBtn(e, callback) {
+    if ($('.thread-tr')) {
+        $('.thread-tr').after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
+    }
+    if ($('#vt')) {
+        $('#vt').append('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
+    }
     $('#injectaggregatBtn').after('<div id="c_container"></div>');
-    $('#injectaggregatBtn').bind('click',callback);
+    $('#injectaggregatBtn').bind('click', callback);
 }
