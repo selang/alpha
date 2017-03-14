@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QQ机器人by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.1
+// @version      0.2
 // @description  目标是实现一些人性化的功能，有想法的请反馈。注意：纯图片视频等不捕捉；表情会被转成超链接；含图片仅回复文字;匿名聊天不捕捉。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea。
 // @author       selang
 // @include       /https?\:\/\/w\.qq\.com/
@@ -15,10 +15,16 @@
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
+//图灵机器人key,改这里
+var tulingKey='64b194e6e27740fcbee72869d1b8ec81';
+
 (function () {
     'use strict';
-    priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。');
-    listenChatContent('web qq机器人测试群');
+    priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。加群双击，暴击:https://jq.qq.com/?_wv=1027&k=45p9bea。');
+    priorityLog('已加入图灵机器人API，请填入自己的图灵机器人key。key申请：http://www.tuling123.com/');
+    priorityLog('参考海绵宝宝的想法，加入图灵机器人API，一肚子坏水会不会来打我O(∩_∩)O');
+
+    listenChatContent('南充软件硬件极客公园');
 })();
 
 //参数是群名
@@ -47,13 +53,25 @@ function listenChatContent(target) {
         var len = otherPersons.length;
         if (len != 0 && len != currentLength) {
             currentLength = len;
-            //log(otherPersons[len - 1]);
+            log(otherPersons[len - 1]);
             var qqNum = $(otherPersons[len - 1]).attr('_sender_uin');
             var chat_content = $(otherPersons[len - 1]).find('.chat_content').html();
             var chat_nick = $(otherPersons[len - 1]).find('.chat_nick').html();
             // window.clearInterval(id);
-            $('#chat_textarea').val(chat_nick + '_' + qqNum + '你刚刚说了：' + '\r\n' + chat_content);
-            $('#send_chat_btn').click();
+            if(chat_content.startsWith('#')){
+                //图灵API对接
+                obtainHtml_POST('http://www.tuling123.com/openapi/api', chat_content, qqNum, function (txt) {
+                    var data=JSON.parse(txt);
+                    log(data);
+                    var msg=data.text;
+                    if(data.url){
+                        msg+='\r\n'+data.url;
+                    }
+                    sendMsg(msg);
+                });
+            }else {
+                //sendMsg(chat_nick + '_' + qqNum + '你刚刚说了：' + '\r\n' + chat_content);
+            }
         } else {
             log('扫描聊天记录中...');
         }
@@ -106,8 +124,7 @@ function dependenceJQuery(e, callback) {
 }
 
 //获取网页
-function obtainHtml(url, sucess, i) {
-    //GM_download('http://www.w3school.com.cn/jquery/test1.txt', "就好");
+function obtainHtml(url, callback) {
     GM_xmlhttpRequest({
         method: 'GET',
         headers: {
@@ -115,7 +132,33 @@ function obtainHtml(url, sucess, i) {
         },
         url: url,
         onload: function (response) {
-            sucess(response.responseText, i);
+            callback(response.responseText);
         }
     });
+}
+
+function obtainHtml_POST(url, info, qNum, callback) {
+    var str = JSON.stringify({
+        key: tulingKey, //更换自己的图灵机器人key
+        info: info,
+        userid: qNum,
+
+    });
+    log(str);
+    GM_xmlhttpRequest({
+        method: 'POST',
+        headers: {
+            "Accept": "application/*"
+        },
+        data: str,
+        url: url,
+        onload: function (response) {
+            callback(response.responseText);
+        }
+    });
+}
+
+function sendMsg(msg) {
+    $('#chat_textarea').val(msg);
+    $('#send_chat_btn').click();
 }
