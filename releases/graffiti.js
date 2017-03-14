@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         涂鸦by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.4
-// @description  涂鸦之作，节约浏览网页的时间成本。目前针对蕾丝猫里详情页的美女图片进行了聚合，不用手动翻页。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
+// @version      0.5
+// @description  涂鸦之作，节约浏览网页的时间成本。目前实现蕾丝猫里详情页的美女图片进行了聚合，不用手动翻页。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
@@ -18,36 +18,66 @@
 (function () {
     'use strict';
 
-    // Your code here...
     var currentPageUrl = window.location.href;
-    var match = currentPageUrl.match(/^(http:\/\/www\.lesmao\.com\/thread-\d+-)(\d+)(-\d+\.html)$/im);
-    if (match !== null) {
-        var preUrl = match[1];
-        var currentPageNum = match[2];
-        var subfixUrl = match[3];
-        currentWindowImpl(preUrl, subfixUrl);
-    }
-    else {
+    var currentHostname = window.location.hostname;
+    var currentPathname = window.location.pathname;
+    var currentProtocol = window.location.protocol;
+    if ('www.lesmao.com' === (currentHostname)) {
+        var match = currentPathname.match(/^\/(thread-\d+-)(\d+)(-\d+\.html)$/im);
+        var preUrl = currentProtocol + '//' + currentHostname + '/'
+        if (match !== null) {
+            var partPreUrl = match[1];
+            var currentPageNum = match[2];
+            var subfixUrl = match[3];
+            currentWindowImpl(preUrl + partPreUrl, subfixUrl);
+        } else {
+            // Match attempt failed
+            var mod = getUrlParam('mod');
+            if ('viewthread' === mod) {
+                var tid = getUrlParam('tid');
+                var partPreUrl = '/forum.php?mod=viewthread&tid=' + tid + '&page=';
+                var subfixUrl = '';
+                currentWindowImpl(preUrl + partPreUrl, subfixUrl);
+            }
+        }
+    } else {
         // Match attempt failed
     }
-
-
 })();
 
+//获取参数
+function getUrlParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return decodeURI(r[2]);
+    return null;
+}
+
 function currentWindowImpl(preUrl, subfixUrl) {
-    dependenceJQuery(window, injectBtn(window, function (e) {
-        if ($('#injectaggregatBtn').val() === '聚合显示') {
-            $('#injectaggregatBtn').val('聚合隐藏');
-            collectPics(window, preUrl, subfixUrl);
-            $('#c_container').show();
-        } else {
-            $('#injectaggregatBtn').val('聚合显示');
-            $('#c_container').hide();
-        }
+    injectAggregationRef();
+    switchAggregationBtn(preUrl,subfixUrl);
+    dependenceJQuery(window, bindBtn(window, function (e) {
+        switchAggregationBtn(preUrl,subfixUrl);
     }));
 }
 
+//按钮切换
+function switchAggregationBtn(preUrl, subfixUrl) {
+    if ($('#injectaggregatBtn').val() === '聚合显示') {
+        $('#injectaggregatBtn').val('聚合隐藏');
+        collectPics(window, preUrl, subfixUrl);
+        $('#c_container').show();
+        $('#thread-pic').hide();
+        $('#thread-page').hide();
+    } else {
+        $('#injectaggregatBtn').val('聚合显示');
+        $('#c_container').hide();
+        $('#thread-pic').show();
+        $('#thread-page').show();
+    }
+}
 
+//日志
 function log(c) {
     console.log(c);
 }
@@ -55,7 +85,7 @@ function log(c) {
 //注入JS：jquery
 function injectJs(e) {
     if (e.jQuery) {
-        log('yes');
+        log('jquery available');
     } else {
         var ele = e.document.createElement('script');
         ele.src = "https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js";
@@ -68,6 +98,7 @@ function injectJs(e) {
     }
 }
 
+//等待JQuery加载完毕
 function dependenceJQuery(e, callback) {
     var id = e.setInterval(function () {
         if (e.jQuery) {
@@ -77,7 +108,7 @@ function dependenceJQuery(e, callback) {
     }, 100);
 }
 
-//JS注入成功后，回调
+//收集图片，回调
 function collectPics(e, preUrl, subfixUrl) {
     var id = e.setInterval(function () {
         if (e.$) {
@@ -89,7 +120,7 @@ function collectPics(e, preUrl, subfixUrl) {
                 if (!breakPageLoop) {
                     var lock = true;
                     obtainHtml(preUrl + i + subfixUrl, function (html, i) {
-                        //log(html);
+                        // log(html);
                         var parser = new DOMParser();
                         var doc = parser.parseFromString(html, "text/html");
                         var status = query(e.$('#c_' + i), $(doc).find('ul > li > img'));
@@ -98,8 +129,7 @@ function collectPics(e, preUrl, subfixUrl) {
                         }
                         lock = false;
                     }, i);
-                }
-                else {
+                } else {
                     break;
                 }
             }
@@ -110,13 +140,14 @@ function collectPics(e, preUrl, subfixUrl) {
 //查询图片
 function query(objContainer, jqObj) {
     jqObj.each(function (index) {
-        //log(index + ": " + $(this).prop('outerHTML'));
+        // log(index + ": " + $(this).prop('outerHTML'));
         var imgSrc = $(this).attr('src');
-        if ('http://i.ajjc.net/k/1178/' === imgSrc) {
+        if (imgSrc.endsWith('/k/1178/')) {
             return 'end page';
+        } else {
+            $(this)[0].style = "width: 100%;height: 100%";
+            objContainer.append('<div>' + $(this).prop('outerHTML') + '</div>');
         }
-        $(this)[0].style="width: 100%;height: 100%";
-        objContainer.append('<div>' + $(this).prop('outerHTML') + '</div>');
     });
 }
 
@@ -135,8 +166,7 @@ function obtainHtml(url, sucess, i) {
     });
 }
 
-
-function injectBtn(e, callback) {
+function injectAggregationRef() {
     if ($('.thread-tr')) {
         $('.thread-tr').after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
     }
@@ -144,5 +174,8 @@ function injectBtn(e, callback) {
         $('#vt').append('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
     }
     $('#injectaggregatBtn').after('<div id="c_container"></div>');
+}
+
+function bindBtn(e, callback) {
     $('#injectaggregatBtn').bind('click', callback);
 }
