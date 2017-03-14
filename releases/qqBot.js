@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QQ机器人by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.2
+// @version      0.3
 // @description  目标是实现一些人性化的功能，有想法的请反馈。注意：纯图片视频等不捕捉；表情会被转成超链接；含图片仅回复文字;匿名聊天不捕捉。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea。
 // @author       selang
 // @include       /https?\:\/\/w\.qq\.com/
