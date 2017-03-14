@@ -23,8 +23,9 @@ var tulingKey='64b194e6e27740fcbee72869d1b8ec81';
     priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。加群双击，暴击:https://jq.qq.com/?_wv=1027&k=45p9bea。');
     priorityLog('已加入图灵机器人API，请填入自己的图灵机器人key。key申请：http://www.tuling123.com/');
     priorityLog('参考海绵宝宝的想法，加入图灵机器人API，一肚子坏水会不会来打我O(∩_∩)O');
-
-    listenChatContent('南充软件硬件极客公园');
+    priorityLog('测试QQ群号：550738206,更改默认群，欢迎进群炸机器人,点击链接加入群【web qq机器人测试群】：https://jq.qq.com/?_wv=1027&k=460shtL');
+    //测试QQ群号：550738206
+    listenChatContent('web qq机器人测试群');
 })();
 
 //参数是群名
