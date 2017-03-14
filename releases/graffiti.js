@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         涂鸦by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.7
+// @version      0.8
 // @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫，有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
@@ -18,7 +18,7 @@
 (function () {
     'use strict';
 
-    priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。');
+    priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
 
     var currentPageUrl = window.location.href;
     var currentHostname = window.location.hostname;
