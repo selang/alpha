@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         涂鸦by SeLang
+// @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      1.0
+// @version      1.1
 // @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
