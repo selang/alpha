@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      1.1
-// @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
+// @version      1.2
+// @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)。待实现：美女86(17786.com)。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
 // @include       /https?\:\/\/www\.umei\.cc/
+// @include       /https?\:\/\/www\.meitulu\.com/
+// @include       /https?\:\/\/www\.17786\.com/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
 // @connect      *
 // @grant        GM_download
@@ -20,7 +22,8 @@
     'use strict';
 
     priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
-    priorityLog('已实现：蕾丝猫(http://www.lesmao.com)，优美(http://www.umei.cc)');
+    priorityLog('已实现：蕾丝猫(http://www.lesmao.com)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)');
+    priorityLog('未实现：美女86(http://www.17786.com)');
 
     var currentPageUrl = window.location.href;
     var currentHostname = window.location.hostname;
@@ -28,7 +31,7 @@
     var currentProtocol = window.location.protocol;
     if ('www.lesmao.com' === currentHostname) {
         var match = currentPathname.match(/^\/(thread-\d+-)(\d+)(-\d+\.html)$/im);
-        var preUrl = currentProtocol + '//' + currentHostname + '/'
+        var preUrl = currentProtocol + '//' + currentHostname + '/';
         var limitPage = 30;
         if (match !== null) {
             var partPreUrl = match[1];
@@ -46,15 +49,15 @@
             }
         }
     } else if ('www.umei.cc' === currentHostname) {
-        var match = currentPathname.match(/^\/(\w+\/\w+\/)(\d+)(?:_\d+)?\.htm$/im);
-        var preUrl = currentProtocol + '//' + currentHostname + '/'
+        var match = currentPathname.match(/^\/(\w+\/\w+(?:\/\w+)?\/)(\d+)(?:_\d+)?\.htm$/im);
+        var preUrl = currentProtocol + '//' + currentHostname + '/';
         if (match !== null) {
             var partPreUrl = match[1];
             var pageId = match[2];
             var subfixUrl = '.htm';
-            // log(preUrl + partPreUrl + pageId + subfixUrl);
+            log(preUrl + partPreUrl + pageId + subfixUrl);
             var pageStr = $('.NewPages li a').html();
-            // log(pageStr);
+            log(pageStr);
             var myregexp = /共(\d+)页/m;
             var match2 = myregexp.exec(pageStr);
             var limitPage = 0;
@@ -62,6 +65,20 @@
                 limitPage = match2[1];
                 currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl);
             }
+        }
+    }
+    else if ('www.meitulu.com' === currentHostname) {
+        var match = currentPathname.match(/^\/(item\/)(\d+)(?:_\d+)?\.html$/im);
+        var preUrl = currentProtocol + '//' + currentHostname + '/';
+        if (match !== null) {
+            var partPreUrl = match[1];
+            var pageId = match[2];
+            var subfixUrl = '.html';
+            log(preUrl + partPreUrl + pageId + subfixUrl);
+            var pageStr = $('a.a1:last').prev().html();
+            log(pageStr);
+            var limitPage = parseInt(pageStr);
+            currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl);
         }
     }
 })();
@@ -92,6 +109,10 @@ function switchAggregationBtn(preUrl, limitPage, subfixUrl) {
         $('#thread-page').hide();
 
         $('.ImageBody').hide();// umei.cc
+
+        $('div.content').hide();// meitulu.com
+        $('body > center').hide();// meitulu.com
+
     } else {
         $('#injectaggregatBtn').val('聚合显示');
         $('#c_container').hide();
@@ -99,6 +120,9 @@ function switchAggregationBtn(preUrl, limitPage, subfixUrl) {
         $('#thread-page').show();
 
         $('.ImageBody').show();// umei.cc
+
+        $('div.content').show();// meitulu.com
+        $('body > center').hide();// meitulu.com
     }
 }
 
@@ -157,8 +181,11 @@ function collectPics(e, preUrl, limitPage, subfixUrl) {
                         // log(preUrl + i + subfixUrl);
                         var imgObj;
                         imgObj = $(doc).find('ul > li > img');
-                        if (imgObj.length==0) {
-                            imgObj = $(doc).find('.ImageBody p img')
+                        if (imgObj.length == 0) {
+                            imgObj = $(doc).find('.ImageBody p img');//umei.cc
+                            if (imgObj.length == 0) {
+                                imgObj = $(doc).find('div.content > center  > img');//meitulu.com
+                            }
                         }
                         var status = query(e.$('#c_' + i), $(imgObj));
                         if ('end page' === status) {
@@ -213,6 +240,14 @@ function injectAggregationRef() {
     if ($('.hr10')) {//http://www.umei.cc/weimeitupian/oumeitupian/20043_2.htm
         $($('.hr10')[0]).after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
         $('iframe').remove();//移除广告等无必要元素
+    }
+    {//http://www.meitulu.com广告遮挡层
+        $("a[id^='__tg_ciw_a__']").remove();
+        $("a[id^='__qdd_ciw_a__']").remove();
+        $('iframe').remove();//移除广告等无必要元素
+    }
+    if ($('div.bk3')) {//lesmao
+        $('div.bk3').after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
     }
     $('#injectaggregatBtn').after('<div id="c_container"></div>');
 }
