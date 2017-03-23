@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      1.2
-// @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)。待实现：美女86(17786.com)。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
+// @version      1.3
+// @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)，美女86(17786.com)。待实现：。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
 // @include       /https?\:\/\/www\.umei\.cc/
@@ -23,7 +23,7 @@
 
     priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
     priorityLog('已实现：蕾丝猫(http://www.lesmao.com)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)');
-    priorityLog('未实现：美女86(http://www.17786.com)');
+    priorityLog('未实现：');
 
     var currentPageUrl = window.location.href;
     var currentHostname = window.location.hostname;
@@ -37,7 +37,7 @@
             var partPreUrl = match[1];
             var currentPageNum = match[2];
             var subfixUrl = match[3];
-            currentWindowImpl(preUrl + partPreUrl, limitPage, subfixUrl);
+            currentWindowImpl(preUrl + partPreUrl, limitPage, subfixUrl, currentHostname);
         } else {
             // Match attempt failed
             var mod = getUrlParam('mod');
@@ -45,7 +45,7 @@
                 var tid = getUrlParam('tid');
                 var partPreUrl = '/forum.php?mod=viewthread&tid=' + tid + '&page=';
                 var subfixUrl = '';
-                currentWindowImpl(preUrl + partPreUrl, limitPage, subfixUrl);
+                currentWindowImpl(preUrl + partPreUrl, limitPage, subfixUrl, currentHostname);
             }
         }
     } else if ('www.umei.cc' === currentHostname) {
@@ -63,7 +63,7 @@
             var limitPage = 0;
             if (match2 != null) {
                 limitPage = match2[1];
-                currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl);
+                currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl, currentHostname);
             }
         }
     }
@@ -78,7 +78,25 @@
             var pageStr = $('a.a1:last').prev().html();
             log(pageStr);
             var limitPage = parseInt(pageStr);
-            currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl);
+            currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl, currentHostname);
+        }
+    } else if ('www.17786.com' === currentHostname) {
+        var match = currentPathname.match(/^\/(\d+)(?:_\d+)?\.html$/im);
+        var preUrl = currentProtocol + '//' + currentHostname + '/';
+        if (match !== null) {
+            var partPreUrl = '';
+            var pageId = match[1];
+            var subfixUrl = '.html';
+            log(preUrl + partPreUrl + pageId + subfixUrl);
+            var pageStr = $('h2').html();
+            log(pageStr);
+            var limitPage = 0;
+            var myregexp = /\(\d+\/(\d+)\)/im;
+            var match = myregexp.exec(pageStr);
+            if (match != null) {
+                limitPage = parseInt(match[1]);
+                currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl, currentHostname);
+            }
         }
     }
 })();
@@ -91,38 +109,52 @@ function getUrlParam(name) {
     return null;
 }
 
-function currentWindowImpl(preUrl, limitPage, subfixUrl) {
-    injectAggregationRef();
-    switchAggregationBtn(preUrl, limitPage, subfixUrl);
+function currentWindowImpl(preUrl, limitPage, subfixUrl, currentHostname) {
+    injectAggregationRef(currentHostname);
+    switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname);
     dependenceJQuery(window, bindBtn(window, function (e) {
-        switchAggregationBtn(preUrl, limitPage, subfixUrl);
+        switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname);
     }));
 }
 
 //按钮切换
-function switchAggregationBtn(preUrl, limitPage, subfixUrl) {
+function switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname) {
     if ($('#injectaggregatBtn').val() === '聚合显示') {
         $('#injectaggregatBtn').val('聚合隐藏');
-        collectPics(window, preUrl, limitPage, subfixUrl);
+        collectPics(window, preUrl, limitPage, subfixUrl, currentHostname);
         $('#c_container').show();
-        $('#thread-pic').hide();
-        $('#thread-page').hide();
 
-        $('.ImageBody').hide();// umei.cc
-
-        $('div.content').hide();// meitulu.com
-        $('body > center').hide();// meitulu.com
+        if ('www.lesmao.com' === currentHostname) {
+            $('#thread-pic').hide();
+            $('#thread-page').hide();
+        } else if ('www.umei.cc' === currentHostname) {
+            $('.ImageBody').hide();
+        }
+        else if ('www.meitulu.com' === currentHostname) {
+            $('div.content').hide();
+            $('body > center').hide();
+        } else if ('www.17786.com' === currentHostname) {
+            $('div.img_box').hide();
+            $('div.wt-pagelist').hide();
+        }
 
     } else {
         $('#injectaggregatBtn').val('聚合显示');
         $('#c_container').hide();
-        $('#thread-pic').show();
-        $('#thread-page').show();
 
-        $('.ImageBody').show();// umei.cc
-
-        $('div.content').show();// meitulu.com
-        $('body > center').hide();// meitulu.com
+        if ('www.lesmao.com' === currentHostname) {
+            $('#thread-pic').show();
+            $('#thread-page').show();
+        } else if ('www.umei.cc' === currentHostname) {
+            $('.ImageBody').show();
+        }
+        else if ('www.meitulu.com' === currentHostname) {
+            $('div.content').show();
+            $('body > center').show();
+        } else if ('www.17786.com' === currentHostname) {
+            $('div.img_box').show();
+            $('div.wt-pagelist').show();
+        }
     }
 }
 
@@ -164,7 +196,7 @@ function dependenceJQuery(e, callback) {
 }
 
 //收集图片，回调
-function collectPics(e, preUrl, limitPage, subfixUrl) {
+function collectPics(e, preUrl, limitPage, subfixUrl, currentHostname) {
     var id = e.setInterval(function () {
         if (e.$) {
             e.clearInterval(id);
@@ -180,12 +212,15 @@ function collectPics(e, preUrl, limitPage, subfixUrl) {
                         var doc = parser.parseFromString(html, "text/html");
                         // log(preUrl + i + subfixUrl);
                         var imgObj;
-                        imgObj = $(doc).find('ul > li > img');
-                        if (imgObj.length == 0) {
-                            imgObj = $(doc).find('.ImageBody p img');//umei.cc
-                            if (imgObj.length == 0) {
-                                imgObj = $(doc).find('div.content > center  > img');//meitulu.com
-                            }
+                        if ('www.lesmao.com' === currentHostname) {
+                            imgObj = $(doc).find('ul > li > img');
+                        } else if ('www.umei.cc' === currentHostname) {
+                            imgObj = $(doc).find('.ImageBody p img');
+                        }
+                        else if ('www.meitulu.com' === currentHostname) {
+                            imgObj = $(doc).find('div.content > center  > img');
+                        } else if ('www.17786.com' === currentHostname) {
+                            imgObj = $(doc).find('img.IMG_show');
                         }
                         var status = query(e.$('#c_' + i), $(imgObj));
                         if ('end page' === status) {
@@ -230,24 +265,31 @@ function obtainHtml(url, sucess, i) {
     });
 }
 
-function injectAggregationRef() {
-    if ($('.thread-tr')) {//lesmao
-        $('.thread-tr').after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
+function injectAggregationRef(currentHostname) {
+    if ('www.lesmao.com' === currentHostname) {
+        if ($('.thread-tr')) {
+            $('.thread-tr').after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
+        }
+        if ($('#vt')) {
+            $('#vt').append('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
+        }
+    } else if ('www.umei.cc' === currentHostname) {
+        if ($('.hr10')) {//http://www.umei.cc/weimeitupian/oumeitupian/20043_2.htm
+            $($('.hr10')[0]).after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
+            $('iframe').remove();//移除广告等无必要元素
+        }
     }
-    if ($('#vt')) {//lesmao
-        $('#vt').append('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
-    }
-    if ($('.hr10')) {//http://www.umei.cc/weimeitupian/oumeitupian/20043_2.htm
-        $($('.hr10')[0]).after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
-        $('iframe').remove();//移除广告等无必要元素
-    }
-    {//http://www.meitulu.com广告遮挡层
-        $("a[id^='__tg_ciw_a__']").remove();
-        $("a[id^='__qdd_ciw_a__']").remove();
-        $('iframe').remove();//移除广告等无必要元素
-    }
-    if ($('div.bk3')) {//lesmao
-        $('div.bk3').after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
+    else if ('www.meitulu.com' === currentHostname) {
+        if ($('div.bk3')) {
+            $('div.bk3').after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
+            {//http://www.meitulu.com广告遮挡层
+                $("a[id^='__tg_ciw_a__']").remove();
+                $("a[id^='__qdd_ciw_a__']").remove();
+                $('iframe').remove();//移除广告等无必要元素
+            }
+        }
+    } else if ('www.17786.com' === currentHostname) {
+        $('div.tsmaincont-desc').after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
     }
     $('#injectaggregatBtn').after('<div id="c_container"></div>');
 }
