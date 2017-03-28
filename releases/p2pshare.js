@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         P2P分享by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.4
+// @version      0.5
 // @description  目标是网页右键收藏，一键打包种子，一键分享，浏览器直接查看，在线编辑发布网站。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea。
 // @author       selang
 // @include       /https?\:\/\/help\.baidu\.com/
@@ -10,6 +10,9 @@
 // @require       https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.1/angular.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js
+// @require       https://cdnjs.cloudflare.com/ajax/libs/javascript-canvas-to-blob/3.7.0/js/canvas-to-blob.min.js
+// @require       https://raw.githubusercontent.com/eligrey/canvas-toBlob.js/master/canvas-toBlob.js
+// @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.5.2/dom-to-image.min.js
 // @connect      *
 // @grant        GM_download
 // @grant        GM_openInTab
@@ -96,7 +99,9 @@ function injectTorrentInputComponent() {
     clearHeadAndBody();
     $('body').append('<input id="torrentVal" type="text" value="" placeholder="请输入特制的种子地址"/>' +
         '<input id="torrentBtn" type="button" value="获取"/>' +
-        '<input id="packageBtn" type="button" value="打包下载当前页图片"/>');
+        '<input id="packageBtn" type="button" value="打包下载当前页图片"/>' +
+        '<input id="captureBtn" type="button" value="截图并下载"/>'
+    );
     bindBtn($('#torrentBtn'), function (e) {
         var torrentVal = $('#torrentVal').val();
         torrentParse(torrentVal);
@@ -121,6 +126,15 @@ function injectTorrentInputComponent() {
                     });
             }
         }, 100);
+    });
+    bindBtn($('#captureBtn'), function (e) {
+        domtoimage.toBlob($('#mainContainer').get(0))
+            .then(function (blob) {
+                saveAs(blob, "captureSL.png");
+            })
+            .catch(function (error) {
+                priorityLog('oops, something went wrong!', error);
+            });
     });
     $('body').append('<div id="mainContainer"></div>');
 }
@@ -230,4 +244,9 @@ function obtainHtml_POST(url, info, qNum, callback) {
             callback(response.responseText);
         }
     });
+}
+
+function dataURItoBlob(dataURI) {
+    var arr = dataURI.split(','), mime = arr[0].match(/:(.*?);/)[1];
+    return new Blob([atob(arr[1])], {type:mime});
 }
