@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         P2P分享by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.3
+// @version      0.4
 // @description  目标是网页右键收藏，一键打包种子，一键分享，浏览器直接查看，在线编辑发布网站。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea。
 // @author       selang
 // @include       /https?\:\/\/help\.baidu\.com/
@@ -24,7 +24,7 @@
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
-var imgType = ['.jpg', '.gif', '.jpeg'];
+var imgType = ['.jpg', '.gif', '.jpeg', '.png'];
 const forceSuffix = '.selang';
 
 var blobCache = {};
@@ -78,19 +78,6 @@ function torrentParse(torrentVal) {
     } else {
         priorityLog('不支持！')
     }
-}
-
-var tempI = 1;
-
-//打包下载
-function zip2Download(zip, imgData) {
-    zip.file("readme.txt", "感谢使用selang提供的插件。欢迎进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy\n");
-    var img = zip.folder("images");
-    img.file("1.jpeg", imgData, {base64: false});
-    zip.generateAsync({type: "blob"})
-        .then(function (content) {
-            saveAs(content, "example" + tempI++ + ".zip");
-        });
 }
 
 //解析返回头
