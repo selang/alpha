@@ -1,13 +1,15 @@
 // ==UserScript==
 // @name         P2P分享by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.2
+// @version      0.3
 // @description  目标是网页右键收藏，一键打包种子，一键分享，浏览器直接查看，在线编辑发布网站。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea。
 // @author       selang
 // @include       /https?\:\/\/help\.baidu\.com/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
 // @require       https://cdn.jsdelivr.net/webtorrent/latest/webtorrent.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.1/angular.min.js
+// @require       https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js
+// @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js
 // @connect      *
 // @grant        GM_download
 // @grant        GM_openInTab
@@ -24,6 +26,8 @@
 
 var imgType = ['.jpg', '.gif', '.jpeg'];
 const forceSuffix = '.selang';
+
+var blobCache = {};
 
 (function () {
     'use strict';
@@ -42,41 +46,100 @@ function torrentParse(torrentVal) {
             var length = torrent.files.length;
             log('共有文件：' + length);
             forEach(torrent.files, function (file) {
-                log(file);
                 var path = file.path;
                 if (forceSuffix === getSuffix(path)) {
                     file.getBuffer(function (err, buffer) {
                         if (err) throw err;
                         var text = buffer.toString();
-                        text = text.replace(/\r|\n/, '\r');
+                        text = text.replace(/(\r|\n)+/, '\r');
                         var txtArray = text.split(/\r/);
                         forEach(txtArray, function (txt) {
                             var type = getSuffix(txt);
                             if (imgType.indexOf(type) != -1) {
-                                $('#mainContainer').append('<img src=' + txt + ' alt=""/>');
+                                log('|' + txt + '|');
+                                obtainBlob(txt, function (response) {
+                                    var responseHeaders = parseHeaders(response.responseHeaders);
+                                    var contentType = responseHeaders['Content-Type'];
+                                    if (!contentType) {
+                                        contentType = "image/png";
+                                    }
+                                    var blob = new Blob([response.response], {type: contentType});
+                                    var objectURL = URL.createObjectURL(blob);
+                                    $('#mainContainer').append('<img label="sl" src=' + objectURL + ' alt=""/>');
+                                    blobCache[objectURL] = blob;
+                                });
+                                //$('#mainContainer').append('<img src=' + txt + ' alt=""/>');
                             }
                         });
                     });
                 }
             });
-        })
+        });
     } else {
         priorityLog('不支持！')
     }
 }
 
+var tempI = 1;
+
+//打包下载
+function zip2Download(zip, imgData) {
+    zip.file("readme.txt", "感谢使用selang提供的插件。欢迎进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy\n");
+    var img = zip.folder("images");
+    img.file("1.jpeg", imgData, {base64: false});
+    zip.generateAsync({type: "blob"})
+        .then(function (content) {
+            saveAs(content, "example" + tempI++ + ".zip");
+        });
+}
+
+//解析返回头
+function parseHeaders(headStr) {
+    var o = {};
+    var myregexp = /^([^:]+):(.*)$/img;
+    var match = /^([^:]+):(.*)$/img.exec(headStr);
+    while (match != null) {
+        o[match[1].trim()] = match[2].trim();
+        match = myregexp.exec(headStr);
+    }
+    return o;
+}
+
 function injectTorrentInputComponent() {
     clearHeadAndBody();
-    $('body').append('<input id="torrentVal" type="text" value="" placeholder="请输入特制的种子地址"/><input id="torrentBtn" type="button" value="获取"/>');
-    bindBtn(window,function (e) {
+    $('body').append('<input id="torrentVal" type="text" value="" placeholder="请输入特制的种子地址"/>' +
+        '<input id="torrentBtn" type="button" value="获取"/>' +
+        '<input id="packageBtn" type="button" value="打包下载当前页图片"/>');
+    bindBtn($('#torrentBtn'), function (e) {
         var torrentVal = $('#torrentVal').val();
         torrentParse(torrentVal);
+    });
+    bindBtn($('#packageBtn'), function (e) {
+        var zip = new JSZip();
+        var imgList = $('img[label="sl"]');
+        var length = imgList.length;
+        $.each(imgList, function (index, value) {
+            zip.file("readme.txt", "感谢使用selang提供的插件。欢迎进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy\n");
+            var img = zip.folder("images");
+            var src = $(value).attr('src');
+            img.file(index + ".jpeg", blobCache[src], {base64: false});
+            length--;
+        });
+        var id = setInterval(function () {
+            if (length == 0) {
+                clearInterval(id);
+                zip.generateAsync({type: "blob"})
+                    .then(function (content) {
+                        saveAs(content, "PackageSL.zip");
+                    });
+            }
+        }, 100);
     });
     $('body').append('<div id="mainContainer"></div>');
 }
 
-function bindBtn(e, callback) {
-    $('#torrentBtn').bind('click', callback);
+function bindBtn(o, callback) {
+    $(o).bind('click', callback);
 }
 
 function clearHeadAndBody() {
@@ -147,15 +210,16 @@ function dependenceJQuery(e, callback) {
 }
 
 //获取网页
-function obtainHtml(url, callback) {
+function obtainBlob(url, callback) {
     GM_xmlhttpRequest({
         method: 'GET',
         headers: {
             "Accept": "application/*"
         },
         url: url,
+        responseType: 'blob',
         onload: function (response) {
-            callback(response.responseText);
+            callback(response);
         }
     });
 }
