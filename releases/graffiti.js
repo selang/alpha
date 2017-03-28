@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      1.4
+// @version      1.5
 // @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)，美女86(17786.com)。待实现：。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
@@ -9,6 +9,9 @@
 // @include       /https?\:\/\/www\.meitulu\.com/
 // @include       /https?\:\/\/www\.17786\.com/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
+// @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js
+// @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.5.2/dom-to-image.min.js
+// @require       https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js
 // @connect      *
 // @grant        GM_download
 // @grant        GM_openInTab
@@ -17,6 +20,8 @@
 // @grant        GM_saveTab
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
+
+var blobCache = {};
 
 (function () {
     'use strict';
@@ -253,7 +258,21 @@ function query(objContainer, jqObj) {
             return 'end page';
         } else {
             $(this)[0].style = "width: 100%;height: 100%";
-            objContainer.append('<div>' + $(this).prop('outerHTML') + '</div>');
+            {
+                obtainBlob(imgSrc, function (response) {
+                    var responseHeaders = parseHeaders(response.responseHeaders);
+                    var contentType = responseHeaders['Content-Type'];
+                    if (!contentType) {
+                        contentType = "image/png";
+                    }
+                    var blob = new Blob([response.response], {type: contentType});
+                    var objectURL = URL.createObjectURL(blob);
+                    // $('#mainContainer').append('<img label="sl" src=' + objectURL + ' alt=""/>');
+                    objContainer.append('<div>' + '<img label="sl" src=' + objectURL + ' alt=""/>' + '</div>');
+                    blobCache[objectURL] = blob;
+                });
+            }
+            //objContainer.append('<div>' + $(this).prop('outerHTML') + '</div>');
         }
     });
 }
@@ -273,23 +292,42 @@ function obtainHtml(url, sucess, i) {
     });
 }
 
+function obtainBlob(url, sucess, i) {
+    GM_xmlhttpRequest({
+        method: 'GET',
+        headers: {
+            "Accept": "application/*"
+        },
+        url: url,
+        responseType: 'blob',
+        onload: function (response) {
+            sucess(response, i);
+        }
+    });
+}
+
 function injectAggregationRef(currentHostname) {
+    var injectComponent =
+        '<input id="captureBtn" type="hidden" value="截图并下载"/>' +
+        '<input id="packageBtn" type="button" value="打包下载聚合图片"/>'+
+        '<span>&nbsp;&nbsp;</span>'+
+        '<input id="injectaggregatBtn" type="button" value="聚合显示"/>';
     if ('www.lesmao.com' === currentHostname) {
         if ($('.thread-tr')) {
-            $('.thread-tr').after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
+            $('.thread-tr').after(injectComponent);
         }
         if ($('#vt')) {
-            $('#vt').append('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
+            $('#vt').append(injectComponent);
         }
     } else if ('www.umei.cc' === currentHostname) {
         if ($('.hr10')) {//http://www.umei.cc/weimeitupian/oumeitupian/20043_2.htm
-            $($('.hr10')[0]).after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
+            $($('.hr10')[0]).after(injectComponent);
             $('iframe').remove();//移除广告等无必要元素
         }
     }
     else if ('www.meitulu.com' === currentHostname) {
         if ($('div.bk3')) {
-            $('div.bk3').after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
+            $('div.bk3').after(injectComponent);
             {//http://www.meitulu.com广告遮挡层
                 $("a[id^='__tg_ciw_a__']").remove();
                 $("a[id^='__qdd_ciw_a__']").remove();
@@ -297,11 +335,55 @@ function injectAggregationRef(currentHostname) {
             }
         }
     } else if ('www.17786.com' === currentHostname) {
-        $('div.tsmaincont-desc').after('<input type="button" id="injectaggregatBtn" value="聚合显示"/>');
+        $('div.tsmaincont-desc').after(injectComponent);
     }
     $('#injectaggregatBtn').after('<div id="c_container"></div>');
 }
 
+
 function bindBtn(e, callback) {
     $('#injectaggregatBtn').bind('click', callback);
+    //TODO 截图有异常
+    $('#captureBtn').bind('click', function (e) {
+        domtoimage.toBlob($('#c_container').get(0))
+            .then(function (blob) {
+                saveAs(blob, "captureSL.png");
+            })
+            .catch(function (error) {
+                console.error('oops, something went wrong!', error);
+            });
+    });
+    $('#packageBtn').bind('click', function (e) {
+        var zip = new JSZip();
+        var imgList = $('img[label="sl"]');
+        var length = imgList.length;
+        $.each(imgList, function (index, value) {
+            zip.file("readme.txt", "感谢使用selang提供的插件。欢迎进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy\n");
+            var img = zip.folder("images");
+            var src = $(value).attr('src');
+            img.file(index + ".jpg", blobCache[src], {base64: false});
+            length--;
+        });
+        var id = setInterval(function () {
+            if (length == 0) {
+                clearInterval(id);
+                zip.generateAsync({type: "blob"})
+                    .then(function (content) {
+                        saveAs(content, "PackageSL.zip");
+                    });
+            }
+        }, 100);
+    });
+}
+
+//解析返回头
+function parseHeaders(headStr) {
+    var o = {};
+    var myregexp = /^([^:]+):(.*)$/img;
+    var match = /^([^:]+):(.*)$/img.exec(headStr);
+    while (match != null) {
+        o[match[1].trim()] = match[2].trim();
+        match = myregexp.exec(headStr);
+    }
+    return o;
 }
