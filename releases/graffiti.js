@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      1.9
+// @version      2.0
 // @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)，美女86(17786.com)。待实现：。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
@@ -24,6 +24,7 @@
 // ==/UserScript==
 
 var blobCache = {};
+var blobUrlCache = {};
 
 (function () {
     'use strict';
@@ -147,17 +148,22 @@ function packageAndDownload() {
                 img.file(index + ".jpg", blobCache[imgSrc], {base64: false});
                 length--;
             } else {
-                obtainBlob(imgSrc, function (response) {
-                    var responseHeaders = parseHeaders(response.responseHeaders);
-                    var contentType = responseHeaders['Content-Type'];
-                    if (!contentType) {
-                        contentType = "image/png";
-                    }
-                    var blob = new Blob([response.response], {type: contentType});
-                    blobCache[imgSrc] = blob;
-                    img.file(index + ".jpg", blobCache[imgSrc], {base64: false});
+                if (!imgSrc.startsWith('blob:')) {
+                    obtainBlob(imgSrc, function (response) {
+                        var responseHeaders = parseHeaders(response.responseHeaders);
+                        var contentType = responseHeaders['Content-Type'];
+                        if (!contentType) {
+                            contentType = "image/png";
+                        }
+                        var blob = new Blob([response.response], {type: contentType});
+                        blobCache[imgSrc] = blob;
+                        img.file(index + ".jpg", blobCache[imgSrc], {base64: false});
+                        length--;
+                    });
+                } else {
+                    img.file(index + ".jpg", blobCache[blobUrlCache[imgSrc]], {base64: false});
                     length--;
-                });
+                }
             }
         }
     });
@@ -241,6 +247,12 @@ function switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname) {
 function log(c) {
     if (false) {
         console.log(c);
+    }
+}
+
+function err(c) {
+    if (true) {
+        console.error(c);
     }
 }
 
@@ -375,7 +387,8 @@ function obtainBlob(url, sucess, i) {
 
 function injectAggregationRef(currentHostname) {
     var injectComponent =
-        '<input id="captureBtn" type="hidden" value="截图并下载"/>' +
+        '<input id="captureBtn" type="button" value="截图并下载"/>' +
+        '<span>&nbsp;&nbsp;</span>' +
         '<input id="packageBtn" type="button" value="打包下载聚合图片"/>' +
         '<span>&nbsp;&nbsp;</span>' +
         '<input id="injectaggregatBtn" type="button" value="聚合显示"/>';
@@ -413,15 +426,64 @@ function injectAggregationRef(currentHostname) {
 
 function bindBtn(e, callback) {
     $('#injectaggregatBtn').bind('click', callback);
-    //TODO 截图有异常
     $('#captureBtn').bind('click', function (e) {
-        domtoimage.toBlob($('#c_container').get(0))
-            .then(function (blob) {
-                saveAs(blob, "captureSL.png");
-            })
-            .catch(function (error) {
-                console.error('oops, something went wrong!', error);
-            });
+        var imgList = $('img[label="sl"]');
+        var length = imgList.length;
+        $.each(imgList, function (index, value) {
+            var imgSrc = $(value).attr('src');
+            {
+                if (blobCache[imgSrc]) {
+                    length--;
+                } else {
+                    if (!imgSrc.startsWith('blob:')) {
+                        obtainBlob(imgSrc, function (response) {
+                            var responseHeaders = parseHeaders(response.responseHeaders);
+                            var contentType = responseHeaders['Content-Type'];
+                            if (!contentType) {
+                                contentType = "image/png";
+                            }
+                            var blob = new Blob([response.response], {type: contentType});
+                            blobCache[imgSrc] = blob;
+                            length--;
+                        });
+                    }
+                }
+            }
+        });
+        var id = setInterval(function () {
+            if (length == 0) {
+                clearInterval(id);
+                var length2 = imgList.length;
+                $.each(imgList, function (index, value) {
+                    var imgSrc = $(value).attr('src');
+                    {
+                        if (!imgSrc.startsWith('blob:')) {
+                            if (blobCache[imgSrc]) {
+                                var objectURL = URL.createObjectURL(blobCache[imgSrc]);
+                                blobUrlCache[objectURL] = imgSrc;
+                                $(value).attr('src', objectURL);
+                                length2--;
+                            }
+                        } else {
+                            length2--;
+                        }
+                    }
+                });
+                var id2 = setInterval(function () {
+                    if (length2 == 0) {
+                        clearInterval(id2);
+                        domtoimage.toBlob($('#c_container').get(0))
+                            .then(function (blob) {
+                                saveAs(blob, "captureSL.png");
+                            })
+                            .catch(function (error) {
+                                err('截图太大不能保存!');
+                            });
+                    }
+                }, 100);
+
+            }
+        }, 100);
     });
     $('#packageBtn').bind('click', function (e) {
         packageAndDownload();
