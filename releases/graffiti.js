@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      1.5
+// @version      1.6
 // @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)，美女86(17786.com)。待实现：。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
@@ -12,6 +12,7 @@
 // @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.5.2/dom-to-image.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js
+// @require       https://cdnjs.cloudflare.com/ajax/libs/dexie/1.5.1/dexie.min.js
 // @connect      *
 // @grant        GM_download
 // @grant        GM_openInTab
@@ -19,6 +20,7 @@
 // @grant        GM_getTabs
 // @grant        GM_saveTab
 // @grant        GM_xmlhttpRequest
+// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 var blobCache = {};
@@ -34,6 +36,7 @@ var blobCache = {};
     var currentHostname = window.location.hostname;
     var currentPathname = window.location.pathname;
     var currentProtocol = window.location.protocol;
+    hotkeys();
     if ('www.lesmao.com' === currentHostname) {
         var match = currentPathname.match(/^\/(thread-\d+-)(\d+)(-\d+\.html)$/im);
         var preUrl = currentProtocol + '//' + currentHostname + '/';
@@ -86,25 +89,54 @@ var blobCache = {};
             currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl, currentHostname);
         }
     } else if ('www.17786.com' === currentHostname) {
-        var match = currentPathname.match(/^\/(\d+)(?:_\d+)?\.html$/im);
+        var match = currentPathname.match(/^\/((?:\w+\/)+)(\d+)(?:_\d+)?\.html$/im);
         var preUrl = currentProtocol + '//' + currentHostname + '/';
         if (match !== null) {
-            var partPreUrl = '';
-            var pageId = match[1];
+            var partPreUrl = match[1];
+            var pageId = match[2];
             var subfixUrl = '.html';
             log(preUrl + partPreUrl + pageId + subfixUrl);
             var pageStr = $('h2').html();
             log(pageStr);
-            var limitPage = 0;
-            var myregexp = /\(\d+\/(\d+)\)/im;
-            var match = myregexp.exec(pageStr);
-            if (match != null) {
-                limitPage = parseInt(match[1]);
-                currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl, currentHostname);
-            }
+            var limitPage = 40;
+            currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl, currentHostname);
         }
     }
 })();
+
+//热键
+function hotkeys() {
+    GM_registerMenuCommand("图片打包下载", packageAndDownload, "d");
+    $(document).keydown(function (e) {
+        if (e.ctrlKey && e.shiftKey) {
+            if (e.which == 76) {//L
+                log("触发快捷键");
+            }
+        }
+    });
+}
+
+function packageAndDownload() {
+    var zip = new JSZip();
+    var imgList = $('img[label="sl"]');
+    var length = imgList.length;
+    $.each(imgList, function (index, value) {
+        zip.file("readme.txt", "感谢使用selang提供的插件。欢迎进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy\n");
+        var img = zip.folder("images");
+        var src = $(value).attr('src');
+        img.file(index + ".jpg", blobCache[src], {base64: false});
+        length--;
+    });
+    var id = setInterval(function () {
+        if (length == 0) {
+            clearInterval(id);
+            zip.generateAsync({type: "blob"})
+                .then(function (content) {
+                    saveAs(content, "PackageSL.zip");
+                });
+        }
+    }, 100);
+}
 
 //获取参数
 function getUrlParam(name) {
@@ -139,8 +171,8 @@ function switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname) {
             $('div.content').hide();
             $('body > center').hide();
         } else if ('www.17786.com' === currentHostname) {
-            $('div.img_box').hide();
-            $('div.wt-pagelist').hide();
+            $('div.picBody').hide();
+            $('.articleV2Page').hide();
         }
 
     } else {
@@ -157,15 +189,15 @@ function switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname) {
             $('div.content').show();
             $('body > center').show();
         } else if ('www.17786.com' === currentHostname) {
-            $('div.img_box').show();
-            $('div.wt-pagelist').show();
+            $('div.picBody').show();
+            $('.articleV2Page').show();
         }
     }
 }
 
 //日志
 function log(c) {
-    if (false) {
+    if (true) {
         console.log(c);
     }
 }
@@ -233,7 +265,7 @@ function collectPics(e, preUrl, limitPage, subfixUrl, currentHostname) {
                                 $('iframe').remove();//移除广告等无必要元素
                             }
                         } else if ('www.17786.com' === currentHostname) {
-                            imgObj = $(doc).find('img.IMG_show');
+                            imgObj = $(doc).find('a#RightUrl img');
                         }
                         var status = query(e.$('#c_' + i), $(imgObj));
                         if ('end page' === status) {
@@ -279,12 +311,12 @@ function query(objContainer, jqObj) {
 
 //获取网页
 function obtainHtml(url, sucess, i) {
-    //GM_download('http://www.w3school.com.cn/jquery/test1.txt', "就好");
     GM_xmlhttpRequest({
         method: 'GET',
-        headers: {
-            "Accept": "application/*"
-        },
+        headers: parseHeaders("Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\n" +
+            "Accept-Encoding:gzip, deflate, sdch\n" +
+            "Accept-Language:zh-CN,zh;q=0.8\n" +
+            "Cache-Control:no-cache"),
         url: url,
         onload: function (response) {
             sucess(response.responseText, i);
@@ -309,8 +341,8 @@ function obtainBlob(url, sucess, i) {
 function injectAggregationRef(currentHostname) {
     var injectComponent =
         '<input id="captureBtn" type="hidden" value="截图并下载"/>' +
-        '<input id="packageBtn" type="button" value="打包下载聚合图片"/>'+
-        '<span>&nbsp;&nbsp;</span>'+
+        '<input id="packageBtn" type="button" value="打包下载聚合图片"/>' +
+        '<span>&nbsp;&nbsp;</span>' +
         '<input id="injectaggregatBtn" type="button" value="聚合显示"/>';
     if ('www.lesmao.com' === currentHostname) {
         if ($('.thread-tr')) {
@@ -335,7 +367,7 @@ function injectAggregationRef(currentHostname) {
             }
         }
     } else if ('www.17786.com' === currentHostname) {
-        $('div.tsmaincont-desc').after(injectComponent);
+        $('div.articleV2Desc').after(injectComponent);
     }
     $('#injectaggregatBtn').after('<div id="c_container"></div>');
 }
@@ -354,25 +386,7 @@ function bindBtn(e, callback) {
             });
     });
     $('#packageBtn').bind('click', function (e) {
-        var zip = new JSZip();
-        var imgList = $('img[label="sl"]');
-        var length = imgList.length;
-        $.each(imgList, function (index, value) {
-            zip.file("readme.txt", "感谢使用selang提供的插件。欢迎进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy\n");
-            var img = zip.folder("images");
-            var src = $(value).attr('src');
-            img.file(index + ".jpg", blobCache[src], {base64: false});
-            length--;
-        });
-        var id = setInterval(function () {
-            if (length == 0) {
-                clearInterval(id);
-                zip.generateAsync({type: "blob"})
-                    .then(function (content) {
-                        saveAs(content, "PackageSL.zip");
-                    });
-            }
-        }, 100);
+        packageAndDownload();
     });
 }
 
