@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      1.7
+// @version      1.8
 // @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)，美女86(17786.com)。待实现：。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
@@ -123,9 +123,25 @@ function packageAndDownload() {
     $.each(imgList, function (index, value) {
         zip.file("readme.txt", "感谢使用selang提供的插件。欢迎进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy\n");
         var img = zip.folder("images");
-        var src = $(value).attr('src');
-        img.file(index + ".jpg", blobCache[src], {base64: false});
-        length--;
+        var imgSrc = $(value).attr('src');
+        {
+            if(blobCache[imgSrc]){
+                img.file(index + ".jpg", blobCache[imgSrc], {base64: false});
+                length--;
+            }else {
+                obtainBlob(imgSrc, function (response) {
+                    var responseHeaders = parseHeaders(response.responseHeaders);
+                    var contentType = responseHeaders['Content-Type'];
+                    if (!contentType) {
+                        contentType = "image/png";
+                    }
+                    var blob = new Blob([response.response], {type: contentType});
+                    blobCache[imgSrc] = blob;
+                    img.file(index + ".jpg", blobCache[imgSrc], {base64: false});
+                    length--;
+                });
+            }
+        }
     });
     var id = setInterval(function () {
         if (length == 0) {
@@ -171,7 +187,7 @@ function switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname) {
             $('div.content').hide();
             $('body > center').hide();
         } else if ('www.17786.com' === currentHostname) {
-            $('div.picBody').hide();
+            $('div#picBody').hide();
             $('.articleV2Page').hide();
         }
 
@@ -189,7 +205,7 @@ function switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname) {
             $('div.content').show();
             $('body > center').show();
         } else if ('www.17786.com' === currentHostname) {
-            $('div.picBody').show();
+            $('div#picBody').show();
             $('.articleV2Page').show();
         }
     }
@@ -290,33 +306,23 @@ function query(objContainer, jqObj) {
             return 'end page';
         } else {
             $(this)[0].style = "width: 100%;height: 100%";
-            {
-                obtainBlob(imgSrc, function (response) {
-                    var responseHeaders = parseHeaders(response.responseHeaders);
-                    var contentType = responseHeaders['Content-Type'];
-                    if (!contentType) {
-                        contentType = "image/png";
-                    }
-                    var blob = new Blob([response.response], {type: contentType});
-                    var objectURL = URL.createObjectURL(blob);
-                    // $('#mainContainer').append('<img label="sl" src=' + objectURL + ' alt=""/>');
-                    objContainer.append('<div>' + '<img label="sl" src=' + objectURL + ' alt=""/>' + '</div>');
-                    blobCache[objectURL] = blob;
-                });
-            }
-            //objContainer.append('<div>' + $(this).prop('outerHTML') + '</div>');
+            $(this).attr('label','sl');
+            objContainer.append('<div>' + $(this).prop('outerHTML') + '</div>');
         }
     });
 }
 
 //获取网页
 function obtainHtml(url, sucess, i) {
+    var headers = parseHeaders("Accept:image/webp,image/*,*/*;q=0.8\n" +
+        "Accept-Encoding:gzip, deflate, sdch\n" +
+        "Accept-Language:zh-CN,zh;q=0.8\n" +
+        "Referer:"+window.location.href+"\n" +
+        "User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+    );
     GM_xmlhttpRequest({
         method: 'GET',
-        headers: parseHeaders("Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\n" +
-            "Accept-Encoding:gzip, deflate, sdch\n" +
-            "Accept-Language:zh-CN,zh;q=0.8\n" +
-            "Cache-Control:no-cache"),
+        headers: headers,
         url: url,
         onload: function (response) {
             sucess(response.responseText, i);
