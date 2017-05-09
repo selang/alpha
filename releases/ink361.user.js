@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ink361集成组件
 // @namespace    https://www.44bz.com/
-// @version      0.1
+// @version      0.2
 // @description  为ink361镜像服务的组件!
 // @author       David
 // @include      /https?:\/\/ink361\.com/
@@ -30,25 +30,38 @@
         var id = setInterval(function () {
             var photoMetas = $('div.photo-meta');
             $.each($(photoMetas), function (index, value) {
-                var _downloads = $(value).find('a.user._download');
-                var dataSrc = $(value).parent().find("div.img").attr('data-src');
-                if (_downloads.length == 0) {
 
-                    if(dataSrc){
-                        var regExp = /\.com\/.*?\/([\w]+\.jpg)/im;
-                        var match = regExp.exec(dataSrc);
-                        var imgName="";
-                        if (match != null) {
-                            imgName = match[1];
-                            dataSrc = dataSrc.replace(regExp, ".com/e35/$1");
-                            log(dataSrc);
-                            $(value).find('a.user').after("<a download=\""+imgName+"\" class=\"user _download\" style=\"float: right;\" href=\""+dataSrc+"\">下载</a>");
-                        } else {
+                var parent = $(value).parent();
+                var dataSrc = parent.find("div.img").attr('data-src');
+                {//移除视频
+                    var videoE = $(parent).find("span.icon-video");
+                    if (videoE.length > 0) {
+                        log('发现视频，移除');
+                        $(parent).parent().remove();
+                    }else {
+                        {//加下载
+                            var _downloads = $(value).find('a.user._download');
+                            if (_downloads.length == 0) {
 
+                                if (dataSrc) {
+                                    var regExp = /\.com\/.*?\/([\w]+\.jpg)/im;
+                                    var match = regExp.exec(dataSrc);
+                                    var imgName = "";
+                                    if (match != null) {
+                                        imgName = match[1];
+                                        dataSrc = dataSrc.replace(regExp, ".com/e35/$1");
+                                        log(dataSrc);
+                                        $(value).find('a.user').after("<a download=\"" + imgName + "\" class=\"user _download\" style=\"float: right;\" href=\"" + dataSrc + "\">下载</a>");
+                                    } else {
+
+                                    }
+                                }
+
+                            }
                         }
                     }
-
                 }
+
             });
         }, 100);
     }
@@ -60,15 +73,15 @@
                 var imgSrc = $(value).find("div.imagewrapper img").attr('src');
                 log(imgSrc);
                 if (_downloads.length == 0) {
-                    if(imgSrc){
+                    if (imgSrc) {
                         var regExp = /\.com\/.*?\/([\w]+\.jpg)/im;
                         var match = regExp.exec(imgSrc);
-                        var imgName="";
+                        var imgName = "";
                         if (match != null) {
                             imgName = match[1];
                             imgSrc = imgSrc.replace(regExp, ".com/e35/$1");
                             log(imgSrc);
-                            $(value).find('#photoHeader  h1 > a:nth-child(2)').after("<a download=\""+imgName+"\" class=\"user _download\" style=\"float: right;\" href=\""+imgSrc+"\">下载</a>");
+                            $(value).find('#photoHeader  h1 > a:nth-child(2)').after("<a download=\"" + imgName + "\" class=\"user _download\" style=\"float: right;\" href=\"" + imgSrc + "\">下载</a>");
                         } else {
 
                         }
@@ -95,7 +108,7 @@ function getUrlParam(name) {
 
 //日志
 function log(c) {
-    if (true) {
+    if (false) {
         console.log(c);
     }
 }
@@ -109,7 +122,6 @@ function err(c) {
 function priorityLog(c) {
     console.log(c);
 }
-
 
 
 function getUrlParams() {
