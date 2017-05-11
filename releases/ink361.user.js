@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ink361集成组件
 // @namespace    https://www.44bz.com/
-// @version      0.2
+// @version      0.3
 // @description  为ink361镜像服务的组件!
 // @author       David
 // @include      /https?:\/\/ink361\.com/
@@ -60,6 +60,9 @@
                             }
                         }
                     }
+                }
+                {//移除队列旋转图标
+                    parent.find("a.photolink.queued").removeClass("queued");
                 }
 
             });
