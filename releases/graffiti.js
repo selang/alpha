@@ -1,13 +1,15 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.0
+// @version      2.1
 // @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)，美女86(17786.com)。待实现：。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
 // @include       /https?\:\/\/www\.umei\.cc/
 // @include       /https?\:\/\/www\.meitulu\.com/
 // @include       /https?\:\/\/www\.17786\.com/
+// @include       /https?\:\/\/www\.nvshens\.com/
+// @include       /https?\:\/\/m\.nvshens\.com/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.5.2/dom-to-image.min.js
@@ -30,7 +32,7 @@ var blobUrlCache = {};
     'use strict';
 
     priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
-    priorityLog('已实现：蕾丝猫(http://www.lesmao.com)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)');
+    priorityLog('已实现：蕾丝猫(http://www.lesmao.com)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)，宅男女神(http://www.nvshens.com)');
     priorityLog('未实现：');
 
     var currentPageUrl = window.location.href;
@@ -119,6 +121,31 @@ var blobUrlCache = {};
                 var limitPage = 40;
                 currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl, currentHostname);
             }
+        }
+    } else if ('www.nvshens.com' === currentHostname || 'm.nvshens.com' === currentHostname) {
+        var match = currentPathname.match(/^\/(g\/\d+)\/?(?:\d+\.html)?$/im);
+        var preUrl = currentProtocol + '//' + currentHostname + '/';
+        if (match !== null) {
+            var partPreUrl = match[1];
+            var pageId = '/';
+            var subfixUrl = '.html';
+            log(preUrl + partPreUrl + pageId + subfixUrl);
+            var pageStr = $('div#dinfo span[style="color: #DB0909"]').html();
+            if (!pageStr) {
+                pageStr = $('div#ddinfo span[style="color: #DB0909"]').html();
+            }
+            var pageNumMatch = pageStr.match(/(\d+)张照片/im);
+            if (pageNumMatch != null) {
+                pageStr = pageNumMatch[1];
+            }
+            var limitPage = parseInt(pageStr);
+            var number = limitPage % 5;
+            limitPage = Math.floor(limitPage / 5);
+            if (number > 0) {
+                limitPage = limitPage + 1;
+            }
+            log(limitPage);
+            currentWindowImpl(preUrl + partPreUrl + pageId, limitPage, subfixUrl, currentHostname);
         }
     }
 })();
@@ -217,6 +244,12 @@ function switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname) {
             }
             $('div#picBody').hide();
             $('.articleV2Page').hide();
+        } else if ('www.nvshens.com' === currentHostname || 'm.nvshens.com' === currentHostname) {
+            {
+                $('div.ck-box-unit').hide();
+                $('div.photos').hide();
+                $('div#imgwrap').hide();
+            }
         }
 
     } else {
@@ -239,6 +272,12 @@ function switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname) {
             }
             $('div#picBody').show();
             $('.articleV2Page').show();
+        } else if ('www.nvshens.com' === currentHostname || 'm.nvshens.com' === currentHostname) {
+            {
+                $('div.ck-box-unit').show();
+                $('div.photos').show();
+                $('div#imgwrap').show();
+            }
         }
     }
 }
@@ -251,7 +290,7 @@ function log(c) {
 }
 
 function err(c) {
-    if (true) {
+    if (false) {
         console.error(c);
     }
 }
@@ -292,12 +331,15 @@ function collectPics(e, preUrl, limitPage, subfixUrl, currentHostname) {
         if (e.$) {
             e.clearInterval(id);
             var breakPageLoop = false;
+            log('limitPage::' + limitPage);
             for (var i = 1; i <= limitPage; i++) {
                 //创建div去装各自
                 e.$('#c_container').append('<div id="c_' + i + '"></div>');
                 if (!breakPageLoop) {
                     var lock = true;
+                    log(preUrl + i + subfixUrl);
                     obtainHtml(preUrl + i + subfixUrl, function (html, i) {
+
                         // log(html);
                         var parser = new DOMParser();
                         var doc = parser.parseFromString(html, "text/html");
@@ -322,6 +364,11 @@ function collectPics(e, preUrl, limitPage, subfixUrl, currentHostname) {
                             imgObj = $(doc).find('img.IMG_show');
                             if (imgObj.length == 0) {
                                 imgObj = $(doc).find('a#RightUrl img');
+                            }
+                        } else if ('www.nvshens.com' === currentHostname || 'm.nvshens.com' === currentHostname) {
+                            imgObj = $(doc).find('ul#hgallery img');
+                            if (imgObj.length == 0) {
+                                imgObj = $(doc).find('div#imgwrap img');
                             }
                         }
                         var status = query(e.$('#c_' + i), $(imgObj));
@@ -419,6 +466,12 @@ function injectAggregationRef(currentHostname) {
             $('div.tsmaincont-desc').after(injectComponent);
         }
         $('div.articleV2Desc').after(injectComponent);
+    } else if ('www.nvshens.com' === currentHostname || 'm.nvshens.com' === currentHostname) {
+        $('div[id^=mms]').remove();//移除广告等无必要元素
+        {
+            $('div#dinfo').after(injectComponent);
+            $('div#ddinfo').after(injectComponent);
+        }
     }
     $('#injectaggregatBtn').after('<div id="c_container"></div>');
 }
