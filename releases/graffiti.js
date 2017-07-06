@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.1
+// @version      2.2
 // @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)，美女86(17786.com)。待实现：。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
@@ -10,6 +10,7 @@
 // @include       /https?\:\/\/www\.17786\.com/
 // @include       /https?\:\/\/www\.nvshens\.com/
 // @include       /https?\:\/\/m\.nvshens\.com/
+// @include       /https\:\/\/www\.youtube\.com/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.5.2/dom-to-image.min.js
@@ -148,7 +149,38 @@ var blobUrlCache = {};
             currentWindowImpl(preUrl + partPreUrl + pageId, limitPage, subfixUrl, currentHostname);
         }
     }
+
+    if ('www.youtube.com' === currentHostname) {
+        var vId = "";
+        var id = setInterval(function () {
+            $('#player-unavailable').not('.hid').addClass('hid');
+            var curVId = getUrlParam('v');
+            if (curVId != null && vId != curVId) {
+                log('切换VID');
+                vId = curVId;
+                var sid = setInterval(function () {
+                    var swichVIdState = switchVId(vId);
+                    if (swichVIdState) {
+                        clearInterval(sid);
+                    }
+                }, 100);
+            }
+        }, 100);
+    }
 })();
+
+function switchVId(vId) {
+    $('#player-unavailable').not('.hid').addClass('hid');
+    var text = $('#unavailable-message').text();
+    if (text && text.indexOf('内容警告') != -1) {
+        log('内容警告::');
+        $('#player-api').removeClass('off-screen-target').html('<iframe src="https://www.youtube.com/embed/' +
+            vId +
+            '" width="100%" height="100%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>');
+        return true;
+    }
+    return false;
+}
 
 //热键
 function hotkeys() {
