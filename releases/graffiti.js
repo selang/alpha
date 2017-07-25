@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.3
-// @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)，美女86(17786.com)。待实现：。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
+// @version      2.4
+// @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)，美女86(17786.com)，24美女图片(24meinv.me)。待实现：。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
 // @include       /https?\:\/\/www\.umei\.cc/
@@ -11,6 +11,7 @@
 // @include       /https?\:\/\/www\.nvshens\.com/
 // @include       /https?\:\/\/m\.nvshens\.com/
 // @include       /https\:\/\/www\.youtube\.com/
+// @include       /https?\:\/\/www\.24meinv\.me/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.5.2/dom-to-image.min.js
@@ -33,7 +34,7 @@ var blobUrlCache = {};
     'use strict';
 
     priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
-    priorityLog('已实现：蕾丝猫(http://www.lesmao.com)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)，宅男女神(http://www.nvshens.com)');
+    priorityLog('已实现：蕾丝猫(http://www.lesmao.com)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)，宅男女神(http://www.nvshens.com)，24美女图片(24meinv.me)');
     priorityLog('已实现：绕过YouTube的年龄限制');
     priorityLog('未实现：');
 
@@ -50,7 +51,7 @@ var blobUrlCache = {};
             var partPreUrl = match[1];
             var currentPageNum = match[2];
             var subfixUrl = match[3];
-            currentWindowImpl(preUrl + partPreUrl, limitPage, subfixUrl, currentHostname);
+            currentWindowImpl(preUrl + partPreUrl, 1, limitPage, subfixUrl, currentHostname);
         } else {
             // Match attempt failed
             var mod = getUrlParam('mod');
@@ -58,7 +59,7 @@ var blobUrlCache = {};
                 var tid = getUrlParam('tid');
                 var partPreUrl = '/forum.php?mod=viewthread&tid=' + tid + '&page=';
                 var subfixUrl = '';
-                currentWindowImpl(preUrl + partPreUrl, limitPage, subfixUrl, currentHostname);
+                currentWindowImpl(preUrl + partPreUrl, 1, limitPage, subfixUrl, currentHostname);
             }
         }
     } else if ('www.umei.cc' === currentHostname) {
@@ -91,7 +92,7 @@ var blobUrlCache = {};
             var pageStr = $('a.a1:last').prev().html();
             log(pageStr);
             var limitPage = parseInt(pageStr);
-            currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl, currentHostname);
+            currentWindowImpl(preUrl + partPreUrl + pageId + '_', 1, limitPage, subfixUrl, currentHostname);
         }
     } else if ('www.17786.com' === currentHostname) {
         var match = currentPathname.match(/^\/(\d+)(?:_\d+)?\.html$/im); //http://www.17786.com/7745_1.html
@@ -108,7 +109,7 @@ var blobUrlCache = {};
             var match = myregexp.exec(pageStr);
             if (match != null) {
                 limitPage = parseInt(match[1]);
-                currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl, currentHostname);
+                currentWindowImpl(preUrl + partPreUrl + pageId + '_', 1, limitPage, subfixUrl, currentHostname);
             }
         } else {
             var match = currentPathname.match(/^\/((?:\w+\/)+)(\d+)(?:_\d+)?\.html$/im);//http://www.17786.com/beautiful/feizhuliutupian/44569.html
@@ -121,7 +122,7 @@ var blobUrlCache = {};
                 var pageStr = $('h2').html();
                 log(pageStr);
                 var limitPage = 40;
-                currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl, currentHostname);
+                currentWindowImpl(preUrl + partPreUrl + pageId + '_', 1, limitPage, subfixUrl, currentHostname);
             }
         }
     } else if ('www.nvshens.com' === currentHostname || 'm.nvshens.com' === currentHostname) {
@@ -147,7 +148,43 @@ var blobUrlCache = {};
                 limitPage = limitPage + 1;
             }
             log(limitPage);
-            currentWindowImpl(preUrl + partPreUrl + pageId, limitPage, subfixUrl, currentHostname);
+            currentWindowImpl(preUrl + partPreUrl + pageId, 1, limitPage, subfixUrl, currentHostname);
+        }
+    } else if ('www.24meinv.me' === currentHostname) {
+        {//去广告
+            var id = setInterval(function () {
+                $('#hgg2').remove();
+                $('#j__s').remove();
+                $('#__jx_div').remove();
+                $('iframe').remove();
+                $('body > div.foot > div > div:nth-child(13)').remove();
+            }, 100);
+        }
+        {
+            var match = currentPathname.match(/^\/(hd1\/\w+?)(?:_\d+)?\.html$/im);
+            var preUrl = currentProtocol + '//' + currentHostname + '/';
+            if (match !== null) {
+                var partPreUrl = match[1];
+                var pageId = '';
+                var subfixUrl = '.html';
+                log(preUrl + partPreUrl + pageId + subfixUrl);
+                var pageStr = $('div.page.ps > a:last-child').attr('href');
+                var limitPage = 0;
+                if (pageStr) {
+                    var myregexp = /^\/(hd1\/\w+?)(?:_(\d+))?\.html$/im;
+                    var match = myregexp.exec(pageStr);
+                    if (match == null) {
+                        match = myregexp.exec(currentPathname);
+                    }
+                    if (match != null) {
+                        limitPage = parseInt(match[2]);
+                        limitPage++;//首页从0开始
+                        currentWindowImpl(preUrl + partPreUrl + pageId + '_', 0, limitPage, subfixUrl, currentHostname);
+                    } else {
+
+                    }
+                }
+            }
         }
     }
 
@@ -246,19 +283,19 @@ function getUrlParam(name) {
     return null;
 }
 
-function currentWindowImpl(preUrl, limitPage, subfixUrl, currentHostname) {
+function currentWindowImpl(preUrl, startIndex, limitPage, subfixUrl, currentHostname) {
     injectAggregationRef(currentHostname);
-    switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname);
+    switchAggregationBtn(preUrl, startIndex, limitPage, subfixUrl, currentHostname);
     dependenceJQuery(window, bindBtn(window, function (e) {
-        switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname);
+        switchAggregationBtn(preUrl, startIndex, limitPage, subfixUrl, currentHostname);
     }));
 }
 
 //按钮切换
-function switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname) {
+function switchAggregationBtn(preUrl, startIndex, limitPage, subfixUrl, currentHostname) {
     if ($('#injectaggregatBtn').val() === '聚合显示') {
         $('#injectaggregatBtn').val('聚合隐藏');
-        collectPics(window, preUrl, limitPage, subfixUrl, currentHostname);
+        collectPics(startIndex, window, preUrl, limitPage, subfixUrl, currentHostname);
         $('#c_container').show();
 
         if ('www.lesmao.com' === currentHostname) {
@@ -282,6 +319,10 @@ function switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname) {
                 $('div.ck-box-unit').hide();
                 $('div.photos').hide();
                 $('div#imgwrap').hide();
+            }
+        } else if ('www.24meinv.me' === currentHostname) {
+            {
+                $('div.gtps.fl').hide();
             }
         }
 
@@ -310,6 +351,10 @@ function switchAggregationBtn(preUrl, limitPage, subfixUrl, currentHostname) {
                 $('div.ck-box-unit').show();
                 $('div.photos').show();
                 $('div#imgwrap').show();
+            }
+        } else if ('www.24meinv.me' === currentHostname) {
+            {
+                $('div.gtps.fl').show();
             }
         }
     }
@@ -359,13 +404,13 @@ function dependenceJQuery(e, callback) {
 }
 
 //收集图片，回调
-function collectPics(e, preUrl, limitPage, subfixUrl, currentHostname) {
+function collectPics(i, e, preUrl, limitPage, subfixUrl, currentHostname) {
     var id = e.setInterval(function () {
         if (e.$) {
             e.clearInterval(id);
             var breakPageLoop = false;
             log('limitPage::' + limitPage);
-            for (var i = 1; i <= limitPage; i++) {
+            for (i; i <= limitPage; i++) {
                 //创建div去装各自
                 e.$('#c_container').append('<div id="c_' + i + '"></div>');
                 if (!breakPageLoop) {
@@ -403,6 +448,13 @@ function collectPics(e, preUrl, limitPage, subfixUrl, currentHostname) {
                             if (imgObj.length == 0) {
                                 imgObj = $(doc).find('div#imgwrap img');
                             }
+                        } else if ('www.24meinv.me' === currentHostname) {
+                            imgObj = $(doc).find('div.gtps.fl img');
+                            $(imgObj).each(function (index) {
+                                // log(index + ": " + $(this).prop('outerHTML'));
+                                var imgSrc = $(this).attr('src').replace(/http:\/\/pic\.diercun\.com(.*?\/)m([\w.]+)$/img, "http://img.diercun.com$1$2");
+                                $(this).attr('src', imgSrc);
+                            });
                         }
                         var status = query(e.$('#c_' + i), $(imgObj));
                         if ('end page' === status) {
@@ -504,6 +556,10 @@ function injectAggregationRef(currentHostname) {
         {
             $('div#dinfo').after(injectComponent);
             $('div#ddinfo').after(injectComponent);
+        }
+    } else if ('www.24meinv.me' === currentHostname) {
+        {
+            $('div.hd1').after(injectComponent);
         }
     }
     $('#injectaggregatBtn').after('<div id="c_container"></div>');
