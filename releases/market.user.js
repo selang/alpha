@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.1
+// @version      0.0.2
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
@@ -183,6 +183,17 @@ function igxecsgo_SetOn2() {//上架
     }, 100);
 }
 
+function igxecsgo_SetOn3() {//上架
+    setInterval(function () {
+        var spwd = document.getElementById('trade-pwd');
+        if (spwd) {
+            if (spwd.value != putwayPWD) {
+                spwd.value = putwayPWD;
+            }
+        }
+    }, 100);
+}
+
 (function () {
     if (location.pathname.indexOf('/category') > -1 || location.pathname.indexOf('/productlist') > -1 || location.pathname.indexOf('/shop') > -1 || location.pathname.indexOf('/search') > -1) {
         igxecsgo_ChechItemPriceRatio();
@@ -194,6 +205,8 @@ function igxecsgo_SetOn2() {//上架
         igxecsgo_SetOrder();
     } else if (location.pathname.indexOf('/inventory/igxe/') > -1) {
         igxecsgo_SetOn();
+    } else if (location.pathname.indexOf('/igxe_inventory') > -1) {
+        igxecsgo_SetOn3();
     } else if (location.pathname.indexOf('/purchase/sell_') > -1) {
         igxecsgo_SetOn2();
     }
