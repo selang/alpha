@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.4
+// @version      2.5
 // @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)，美女86(17786.com)，24美女图片(24meinv.me)。待实现：。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
@@ -51,6 +51,11 @@ var blobUrlCache = {};
             var partPreUrl = match[1];
             var currentPageNum = match[2];
             var subfixUrl = match[3];
+            var limitPageStr=$('#thread-page > div > div > label > span').text();
+            var limitPageMatch = limitPageStr.match(/(\d+)/i);
+            if(limitPageMatch!=null){
+                limitPage=parseInt(limitPageMatch[1]);
+            }
             currentWindowImpl(preUrl + partPreUrl, 1, limitPage, subfixUrl, currentHostname);
         } else {
             // Match attempt failed
@@ -59,6 +64,11 @@ var blobUrlCache = {};
                 var tid = getUrlParam('tid');
                 var partPreUrl = '/forum.php?mod=viewthread&tid=' + tid + '&page=';
                 var subfixUrl = '';
+                var limitPageStr=$('#page > div > label > span').text();
+                var limitPageMatch = limitPageStr.match(/(\d+)/i);
+                if(limitPageMatch!=null){
+                    limitPage=parseInt(limitPageMatch[1]);
+                }
                 currentWindowImpl(preUrl + partPreUrl, 1, limitPage, subfixUrl, currentHostname);
             }
         }
