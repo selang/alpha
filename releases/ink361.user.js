@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ink361集成组件
 // @namespace    https://www.44bz.com/
-// @version      0.3
+// @version      0.4
 // @description  为ink361镜像服务的组件!
 // @author       David
 // @include      /https?:\/\/ink361\.com/
