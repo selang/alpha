@@ -1,10 +1,14 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.2
+// @version      0.0.3
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
+// @connect      *
+// @grant        GM_download
+// @grant        GM_xmlhttpRequest
+// @grant        unsafeWindow
 // @run-at       document-end
 // ==/UserScript==
 var igxecsgo_Name = 'IG-XE-CS-GO';
@@ -64,6 +68,19 @@ function igxecsgo_ChechItemPriceRatio() {//列表页方法
         } else {
             // Match attempt failed
         }
+    }
+
+    {
+        var $ = jQuery;
+        var _id = setInterval(function () {
+            var popSuc = $('.layui-layer-wrap');
+            if (popSuc.length == 1) {
+                var payOrder = $(popSuc).find('a')[0];
+                $(payOrder).attr('target','_blank');
+                $(popSuc).find('a')[0].click();
+                clearInterval(_id);
+            }
+        }, 100);
     }
 }
 
@@ -159,6 +176,20 @@ function igxecsgo_SetOrder() {//订单页方法
     document.getElementById('buyer_name').value = (sessionStorage.getItem('buyer_name') === null) ? '' : sessionStorage.getItem('buyer_name');
     document.getElementById('pay-pwd').value = payPWD;
     layer.msg('已自动填写购买者名称', {offset: ['24px', '24px'], shift: 4});
+    {
+        var _id = setInterval(function () {
+            var radio = $('ul > li:nth-child(1) > label > input[type="radio"]');
+            if (radio.length == 1) {
+                $(radio).attr("checked", 'checked');
+                {
+                    if (!$('#pay_order').is(':disabled')) {
+                        $('#pay_order').click();
+                    }
+                }
+                clearInterval(_id);
+            }
+        }, 100);
+    }
 }
 
 function igxecsgo_SetOn() {//上架
@@ -214,3 +245,50 @@ function igxecsgo_SetOn3() {//上架
         layer.msg(igxecsgo_Name + '已载入', {offset: ['24px', '24px'], shift: 4});
     }
 })();
+
+//解析头
+function parseHeaders(headStr) {
+    var o = {};
+    var myregexp = /^([^:]+):(.*)$/img;
+    var match = /^([^:]+):(.*)$/img.exec(headStr);
+    while (match != null) {
+        o[match[1].trim()] = match[2].trim();
+        match = myregexp.exec(headStr);
+    }
+    return o;
+}
+
+//获取网页
+function obtainHtml(url, sucess) {
+    var headers = parseHeaders("Accept:image/webp,image/*,*/*;q=0.8\n" +
+        "Accept-Encoding:gzip, deflate, sdch\n" +
+        "Accept-Language:zh-CN,zh;q=0.8\n" +
+        //"Referer:" + window.location.href + "\n" +
+        "User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+    );
+    GM_xmlhttpRequest({
+        method: 'GET',
+        headers: headers,
+        url: url,
+        onload: function (response) {
+            sucess(response.responseText);
+        }
+    });
+}
+
+//日志
+function log(c) {
+    if (true) {
+        console.log(c);
+    }
+}
+
+function err(c) {
+    if (true) {
+        console.error(c);
+    }
+}
+
+function priorityLog(c) {
+    console.log(c);
+}
