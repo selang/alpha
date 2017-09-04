@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.6
+// @version      0.0.7
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
@@ -91,7 +91,7 @@ function igxecsgo_ChechItemPriceRatio() {//列表页方法
     {
         var $ = jQuery;
         $('.mod-hotEquipment').each(function (index) {
-            $(this).find('div.mod-hotEquipment-ft > a.com-btn.com-green.add-cart.category').before('<div><input type="button" onclick="alipay();" class="payWays com-btn com-red" value="打开"/></div> ');
+            $(this).find('div.mod-hotEquipment-ft > a.com-btn.com-green.add-cart.category').before('<div style="display: flex;margin-left: 134px;"><input type="button" onclick="alipay();" class="payWays com-btn com-red" value="打开"/></div> ');
         });
     }
 }
@@ -217,7 +217,7 @@ function igxecsgo_SetOrder() {//订单页方法
                     $(radio).attr("checked", 'checked');
                     {
                         if (!$('#pay_order').is(':disabled')) {
-                            // $('#pay_order').click();
+                            $('#pay_order').click();
                         }
                     }
                     clearInterval(_id);
