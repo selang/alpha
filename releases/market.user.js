@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.5
+// @version      0.0.6
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
@@ -72,13 +72,18 @@ function igxecsgo_ChechItemPriceRatio() {//列表页方法
 
     {
         var $ = jQuery;
+        var clickFlag = false;
         var _id = setInterval(function () {
             var popSuc = $('.layui-layer-wrap');
-            if (popSuc.length == 1) {
+            var display = $(popSuc).css('display');
+            if (display === 'block' && !clickFlag) {
                 var payOrder = $(popSuc).find('a')[0];
                 $(payOrder).attr('target', '_blank');
                 $(popSuc).find('a')[0].click();
-                clearInterval(_id);
+                clickFlag = true;
+            }
+            if (display === 'none') {
+                clickFlag = false;
             }
         }, 300);
     }
@@ -86,15 +91,15 @@ function igxecsgo_ChechItemPriceRatio() {//列表页方法
     {
         var $ = jQuery;
         $('.mod-hotEquipment').each(function (index) {
-            $(this).append('<input type="button" onclick="alipay();" class="payWays com-btn com-red" value="打开"/> ');
+            $(this).find('div.mod-hotEquipment-ft > a.com-btn.com-green.add-cart.category').before('<div><input type="button" onclick="alipay();" class="payWays com-btn com-red" value="打开"/></div> ');
         });
     }
 }
 
 unsafeWindow.alipay = function () {
-    if(sessionStorage.getItem('payWays') === 'alipay'){
+    if (sessionStorage.getItem('payWays') === 'alipay') {
         sessionStorage.setItem('payWays', 'normal');
-    }else {
+    } else {
         sessionStorage.setItem('payWays', 'alipay');
     }
 }
@@ -103,9 +108,9 @@ unsafeWindow.alipay = function () {
     var $ = jQuery;
     var _id = setInterval(function () {
         var payWays = sessionStorage.getItem('payWays');
-        if(payWays === 'alipay'){
+        if (payWays === 'alipay') {
             $('.payWays').val('关闭');
-        }else {
+        } else {
             $('.payWays').val('打开');
         }
     }, 300);
@@ -206,19 +211,19 @@ function igxecsgo_SetOrder() {//订单页方法
     {
         var _id = setInterval(function () {
             var payWays = sessionStorage.getItem('payWays');
-            if(payWays === 'alipay'){
+            if (payWays === 'alipay') {
                 var radio = $('ul > li:nth-child(1) > label > input[type="radio"]');
                 if (radio.length == 1) {
                     $(radio).attr("checked", 'checked');
                     {
                         if (!$('#pay_order').is(':disabled')) {
-                            $('#pay_order').click();
+                            // $('#pay_order').click();
                         }
                     }
                     clearInterval(_id);
                 }
-            }else {
-                
+            } else {
+
             }
         }, 300);
     }
