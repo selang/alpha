@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.3
+// @version      0.0.4
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
@@ -76,12 +76,39 @@ function igxecsgo_ChechItemPriceRatio() {//列表页方法
             var popSuc = $('.layui-layer-wrap');
             if (popSuc.length == 1) {
                 var payOrder = $(popSuc).find('a')[0];
-                $(payOrder).attr('target','_blank');
+                $(payOrder).attr('target', '_blank');
                 $(popSuc).find('a')[0].click();
                 clearInterval(_id);
             }
-        }, 100);
+        }, 300);
     }
+
+    {
+        var $ = jQuery;
+        $('.mod-hotEquipment').each(function (index) {
+            $(this).append('<input type="button" onclick="alipay();" class="payWays com-btn com-red" value="打开"/> ');
+        });
+    }
+}
+
+unsafeWindow.alipay = function () {
+    if(sessionStorage.getItem('payWays') === 'alipay'){
+        sessionStorage.setItem('payWays', 'normal');
+    }else {
+        sessionStorage.setItem('payWays', 'alipay');
+    }
+}
+
+{
+    var $ = jQuery;
+    var _id = setInterval(function () {
+        var payWays = sessionStorage.getItem('payWays');
+        if(payWays === 'alipay'){
+            $('.payWays').val('关闭');
+        }else {
+            $('.payWays').val('打开');
+        }
+    }, 300);
 }
 
 //获取参数
@@ -178,17 +205,22 @@ function igxecsgo_SetOrder() {//订单页方法
     layer.msg('已自动填写购买者名称', {offset: ['24px', '24px'], shift: 4});
     {
         var _id = setInterval(function () {
-            var radio = $('ul > li:nth-child(1) > label > input[type="radio"]');
-            if (radio.length == 1) {
-                $(radio).attr("checked", 'checked');
-                {
-                    if (!$('#pay_order').is(':disabled')) {
-                        $('#pay_order').click();
+            var payWays = sessionStorage.getItem('payWays');
+            if(payWays === 'alipay'){
+                var radio = $('ul > li:nth-child(1) > label > input[type="radio"]');
+                if (radio.length == 1) {
+                    $(radio).attr("checked", 'checked');
+                    {
+                        if (!$('#pay_order').is(':disabled')) {
+                            $('#pay_order').click();
+                        }
                     }
+                    clearInterval(_id);
                 }
-                clearInterval(_id);
+            }else {
+                
             }
-        }, 100);
+        }, 300);
     }
 }
 
