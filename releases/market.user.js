@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.4
+// @version      0.0.5
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
@@ -28,7 +28,7 @@ function igxecsgo_ChechItemPriceRatio() {//列表页方法
         if (_ratio <= 0.5) {
             jQuery(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#fff;\">' + _ratio + '</strong> ->先下手为强</p>');
             jQuery(this).parent().parent().parent().parent().css({"border": "2px solid #fff"});
-            layer.open({title: igxecsgo_Name, content: '本页有低于0.5比例的饰品!'});
+            //layer.open({title: igxecsgo_Name, content: '本页有低于0.5比例的饰品!'});
         } else if (0.5 < _ratio && _ratio <= 0.6) {
             jQuery(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#09f;\">' + _ratio + '</strong> ->好价速秒</p>');
             jQuery(this).parent().parent().parent().parent().css({"border": "2px solid #09f"});
@@ -125,7 +125,7 @@ function igxecsgo_ChechItemPriceRatio2() {//详情页方法
     var _ratio = (igxecsgo_ItemPrice2 / igxecsgo_ItemPrice).toFixed(4);
     if (_ratio <= 0.5) {
         jQuery("div.s3 span strong").parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#fff;\">' + _ratio + '</strong> ->先下手为强</p>');
-        layer.open({title: igxecsgo_Name, content: '本页有低于0.5比例的饰品!'});
+        //layer.open({title: igxecsgo_Name, content: '本页有低于0.5比例的饰品!'});
     } else if (0.5 < _ratio && _ratio <= 0.6) {
         jQuery("div.s3 span strong").parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#09f;\">' + _ratio + '</strong> ->好价速秒</p>');
     } else if (0.6 < _ratio && _ratio <= 0.7) {
