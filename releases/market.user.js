@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.7
+// @version      0.0.8
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
@@ -12,7 +12,8 @@
 // @run-at       document-end
 // ==/UserScript==
 var igxecsgo_Name = 'IG-XE-CS-GO';
-var buyer_name = jQuery('#js-show-user-pane > a.s.vam.omit.dib').text();
+var $ = jQuery;
+var buyer_name = $('#js-show-user-pane > a.s.vam.omit.dib').text();
 var putwayPWD = '你的上架密码';
 var payPWD = '你的支付密码';
 if (buyer_name) {
@@ -20,32 +21,32 @@ if (buyer_name) {
 }
 
 function igxecsgo_ChechItemPriceRatio() {//列表页方法
-    var igxecsgo_ItemPrice = jQuery("div.s2 span b");//市场价
-    var igxecsgo_ItemPrice2 = jQuery("div.s3 span strong");//卖家价
+    var igxecsgo_ItemPrice = $("div.s2 span b");//市场价
+    var igxecsgo_ItemPrice2 = $("div.s3 span strong");//卖家价
     var igxecsgo_ItemCount2 = 1;
     igxecsgo_ItemPrice2.each(function () {
         var _ratio = (Number(igxecsgo_ItemPrice2[igxecsgo_ItemCount2 - 1].innerText) / Number(igxecsgo_ItemPrice[igxecsgo_ItemCount2 - 1].innerText)).toFixed(4);
         if (_ratio <= 0.5) {
-            jQuery(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#fff;\">' + _ratio + '</strong> ->先下手为强</p>');
-            jQuery(this).parent().parent().parent().parent().css({"border": "2px solid #fff"});
+            $(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#fff;\">' + _ratio + '</strong> ->先下手为强</p>');
+            $(this).parent().parent().parent().parent().css({"border": "2px solid #fff"});
             //layer.open({title: igxecsgo_Name, content: '本页有低于0.5比例的饰品!'});
         } else if (0.5 < _ratio && _ratio <= 0.6) {
-            jQuery(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#09f;\">' + _ratio + '</strong> ->好价速秒</p>');
-            jQuery(this).parent().parent().parent().parent().css({"border": "2px solid #09f"});
+            $(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#09f;\">' + _ratio + '</strong> ->好价速秒</p>');
+            $(this).parent().parent().parent().parent().css({"border": "2px solid #09f"});
         } else if (0.6 < _ratio && _ratio <= 0.7) {
-            jQuery(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#080;\">' + _ratio + '</strong> ->大商出货</p>');
-            jQuery(this).parent().parent().parent().parent().css({"border": "2px solid #080"});
+            $(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#080;\">' + _ratio + '</strong> ->大商出货</p>');
+            $(this).parent().parent().parent().parent().css({"border": "2px solid #080"});
         } else if (0.7 < _ratio && _ratio <= 0.8) {
-            jQuery(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#a0ff58;\">' + _ratio + '</strong> ->正常贸易</p>');
-            jQuery(this).parent().parent().parent().parent().css({"border": "2px solid #a0ff58"});
+            $(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#a0ff58;\">' + _ratio + '</strong> ->正常贸易</p>');
+            $(this).parent().parent().parent().parent().css({"border": "2px solid #a0ff58"});
         } else if (0.8 < _ratio && _ratio <= 1) {
-            jQuery(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#f0ad4e;\">' + _ratio + '</strong> ->建议去Steam市场</p>');
-            jQuery(this).parent().parent().parent().parent().css({"border": "2px solid #f0ad4e"});
-            // jQuery(this).parent().parent().parent().parent().remove();
+            $(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#f0ad4e;\">' + _ratio + '</strong> ->建议去Steam市场</p>');
+            $(this).parent().parent().parent().parent().css({"border": "2px solid #f0ad4e"});
+            // $(this).parent().parent().parent().parent().remove();
         } else {
-            jQuery(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#c43f0f;\">' + _ratio + '</strong> ->玄学,静待有缘人</p>');
-            jQuery(this).parent().parent().parent().parent().css({"border": "2px solid #c43f0f"});
-            // jQuery(this).parent().parent().parent().parent().remove();
+            $(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#c43f0f;\">' + _ratio + '</strong> ->玄学,静待有缘人</p>');
+            $(this).parent().parent().parent().parent().css({"border": "2px solid #c43f0f"});
+            // $(this).parent().parent().parent().parent().remove();
         }
         igxecsgo_ItemCount2 += 1;
     });
@@ -53,7 +54,7 @@ function igxecsgo_ChechItemPriceRatio() {//列表页方法
 
     //迅速标记
     {
-        var salePriceStr = jQuery(jQuery('.s3 strong')[0]).text();
+        var salePriceStr = $($('.s3 strong')[0]).text();
         var miniSalePrice = parseFloat(salePriceStr);
         var match = window.location.href.match(/#([^#]+)$/im);
         if (match != null) {
@@ -62,7 +63,7 @@ function igxecsgo_ChechItemPriceRatio() {//列表页方法
             if (salePriceStr != null) {
                 var salePrice = parseFloat(salePriceStr);
                 if (miniSalePrice >= salePrice) {
-                    jQuery('ul.widget-filter > li:nth-child(1)').prepend('<strong style=\"color:#c43f0f;\">可赚：' + (miniSalePrice - salePrice).toFixed(2) + '</strong>');
+                    $('ul.widget-filter > li:nth-child(1)').prepend('<strong style=\"color:#c43f0f;\">可赚：' + (miniSalePrice - salePrice).toFixed(2) + '</strong>');
                 }
             }
         } else {
@@ -71,7 +72,6 @@ function igxecsgo_ChechItemPriceRatio() {//列表页方法
     }
 
     {
-        var $ = jQuery;
         var clickFlag = false;
         var _id = setInterval(function () {
             var popSuc = $('.layui-layer-wrap');
@@ -89,7 +89,6 @@ function igxecsgo_ChechItemPriceRatio() {//列表页方法
     }
 
     {
-        var $ = jQuery;
         $('.mod-hotEquipment').each(function (index) {
             $(this).find('div.mod-hotEquipment-ft > a.com-btn.com-green.add-cart.category').before('<div style="display: flex;margin-left: 134px;"><input type="button" onclick="alipay();" class="payWays com-btn com-red" value="打开"/></div> ');
         });
@@ -105,7 +104,6 @@ unsafeWindow.alipay = function () {
 }
 
 {
-    var $ = jQuery;
     var _id = setInterval(function () {
         var payWays = sessionStorage.getItem('payWays');
         if (payWays === 'alipay') {
@@ -125,32 +123,32 @@ function getParam(dest, name) {
 }
 
 function igxecsgo_ChechItemPriceRatio2() {//详情页方法
-    var igxecsgo_ItemPrice = Number(jQuery("div.s2 span b").text().replace('￥', '').trim());//市场价
-    var igxecsgo_ItemPrice2 = Number(jQuery("div.s3 span strong").text().replace('￥', '').trim());//卖家价
+    var igxecsgo_ItemPrice = Number($('div.mod-equipmentDetail-bd > div.s2').last().find('b').text().replace('￥', '').trim());//市场价
+    var igxecsgo_ItemPrice2 = Number($("div.s3 span strong").text().replace('￥', '').trim());//卖家价
     var _ratio = (igxecsgo_ItemPrice2 / igxecsgo_ItemPrice).toFixed(4);
     if (_ratio <= 0.5) {
-        jQuery("div.s3 span strong").parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#fff;\">' + _ratio + '</strong> ->先下手为强</p>');
+        $("div.s3 span strong").parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#fff;\">' + _ratio + '</strong> ->先下手为强</p>');
         //layer.open({title: igxecsgo_Name, content: '本页有低于0.5比例的饰品!'});
     } else if (0.5 < _ratio && _ratio <= 0.6) {
-        jQuery("div.s3 span strong").parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#09f;\">' + _ratio + '</strong> ->好价速秒</p>');
+        $("div.s3 span strong").parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#09f;\">' + _ratio + '</strong> ->好价速秒</p>');
     } else if (0.6 < _ratio && _ratio <= 0.7) {
-        jQuery("div.s3 span strong").parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#080;\">' + _ratio + '</strong> ->大商出货</p>');
+        $("div.s3 span strong").parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#080;\">' + _ratio + '</strong> ->大商出货</p>');
     } else if (0.7 < _ratio && _ratio <= 0.8) {
-        jQuery("div.s3 span strong").parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#a0ff58;\">' + _ratio + '</strong> ->正常贸易</p>');
+        $("div.s3 span strong").parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#a0ff58;\">' + _ratio + '</strong> ->正常贸易</p>');
     } else if (0.8 < _ratio && _ratio <= 1) {
-        jQuery("div.s3 span strong").parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#f0ad4e;\">' + _ratio + '</strong> ->建议去Steam市场看看</p>');
+        $("div.s3 span strong").parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#f0ad4e;\">' + _ratio + '</strong> ->建议去Steam市场看看</p>');
     } else {
-        jQuery("div.s3 span strong").parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#c43f0f;\">' + _ratio + '</strong> ->玄学,静待有缘人</p>');
+        $("div.s3 span strong").parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#c43f0f;\">' + _ratio + '</strong> ->玄学,静待有缘人</p>');
     }
 
     {
-        var sName = jQuery('.mod-equipmentDetail-bd h3').text().trim();
-        var salePrice = jQuery('.mod-equipmentDetail-bd .s3 span strong').text().trim().replace("￥", "");
-        var exteriorIndex = jQuery('.s1 span').text().trim().replace("外观: ", "");
-        var rarityIndex = jQuery('.s1 b').text().trim();
+        var sName = $('.mod-equipmentDetail-bd h3').text().trim();
+        var salePrice = $('.mod-equipmentDetail-bd .s3 span strong').text().trim().replace("￥", "");
+        var exteriorIndex = $('.s1 span').text().trim().replace("外观: ", "");
+        var rarityIndex = $('.s1 b').text().trim();
         var suffixLogic = '#salePrice=' + salePrice;
         //加入列表查询按钮
-        jQuery('.s4.js-add-cart-parent').append('<a href="https://www.igxe.cn/csgo/search/0_0?keyword=' +
+        $('.s4.js-add-cart-parent').append('<a href="https://www.igxe.cn/csgo/search/0_0?keyword=' +
             encodeURI(sName) +
             '&search_page_no=1&search_relate_price=&search_is_sticker=0&search_price_gte=&search_price_lte=&search_rarity_id=' +
             rarity(rarityIndex) +
