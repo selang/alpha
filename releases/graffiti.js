@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.6
+// @version      2.7
 // @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)，美女86(17786.com)，24美女图片(24meinv.me)。待实现：。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
@@ -88,7 +88,7 @@ var blobUrlCache = {};
             var limitPage = 0;
             if (match2 != null) {
                 limitPage = match2[1];
-                currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, suffixUrl, currentHostname);
+                currentWindowImpl(preUrl + partPreUrl + pageId + '_', 1,limitPage, suffixUrl, currentHostname);
             }
         }
     }
@@ -172,7 +172,7 @@ var blobUrlCache = {};
             }, 100);
         }
         {
-            var match = currentPathname.match(/^\/(hd1\/\w+?)(?:_\d+)?\.html$/im);
+            var match = currentPathname.match(/^\/(hd\d\/\w+?)(?:_\d+)?\.html$/im);
             var preUrl = currentProtocol + '//' + currentHostname + '/';
             if (match !== null) {
                 var partPreUrl = match[1];
@@ -182,18 +182,21 @@ var blobUrlCache = {};
                 var pageStr = $('div.page.ps > a:last-child').attr('href');
                 var limitPage = 0;
                 if (pageStr) {
-                    var myregexp = /^\/(hd1\/\w+?)(?:_(\d+))?\.html$/im;
+                    var myregexp = /^\/(hd\d\/\w+?)(?:_(\d+))?\.html$/im;
                     var match = myregexp.exec(pageStr);
                     if (match == null) {
                         match = myregexp.exec(currentPathname);
                     }
                     if (match != null) {
+                        log('limitPage:'+limitPage);
                         limitPage = parseInt(match[2]);
                         limitPage++;//首页从0开始
                         currentWindowImpl(preUrl + partPreUrl + pageId + '_', 0, limitPage, suffixUrl, currentHostname);
                     } else {
 
                     }
+                } else {
+                     
                 }
             }
         }
@@ -373,7 +376,7 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentH
 
 //日志
 function log(c) {
-    if (true) {
+    if (false) {
         console.log(c);
     }
 }
@@ -438,6 +441,51 @@ function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) 
                         method: 'GET',
                         onload: function () {
                             var _i = i;
+                            var parseObj = {
+                                'www.lesmao.com': function (doc) {
+                                    return $(doc).find('ul > li > img');
+                                },
+                                'www.umei.cc': function (doc) {
+                                    {//移除图片附属广告
+                                        $('div div div.ad-widget-imageplus-sticker').parent().parent().remove();
+                                    }
+                                    return $(doc).find('.ImageBody p img');
+                                },
+                                'www.meitulu.com': function (doc) {
+                                    {//http://www.meitulu.com广告遮挡层
+                                        $("a[id^='__tg_ciw_a__']").remove();
+                                        $("a[id^='__qdd_ciw_a__']").remove();
+                                        $('iframe').remove();//移除广告等无必要元素
+                                    }
+                                    return $(doc).find('div.content > center  > img');
+                                },
+                                'www.17786.com': function (doc) {
+                                    var imgObj = $(doc).find('img.IMG_show');
+                                    if (imgObj.length == 0) {
+                                        imgObj = $(doc).find('a#RightUrl img');
+                                    }
+                                    return imgObj;
+                                },
+                                'www.nvshens.com': function (doc) {
+                                    return $(doc).find('ul#hgallery img');
+                                },
+                                'm.nvshens.com': function (doc) {
+                                    return $(doc).find('div#imgwrap img');
+                                },
+                                'www.24meinv.me': function (doc) {
+                                    var imgObj = $(doc).find('div.gtps.fl img');
+                                    $(imgObj).each(function (index) {
+                                        // log(index + ": " + $(this).prop('outerHTML'));
+                                        var imgSrc = $(this).attr('src').replace(/http:\/\/pic\.diercun\.com(.*?\/)m([\w.]+)$/img, "http://img.diercun.com$1$2");
+                                        $(this).attr('src', imgSrc);
+                                    });
+                                    return imgObj;
+                                },
+                                '': function (doc) {
+
+                                    return;
+                                },
+                            };
                             return function (response) {
                                 var html = response.responseText;
                                 // log(html);
@@ -445,39 +493,9 @@ function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) 
                                 var doc = parser.parseFromString(html, "text/html");
                                 // log(preUrl + _i + suffixUrl);
                                 var imgObj;
-                                if ('www.lesmao.com' === currentHostname) {
-                                    imgObj = $(doc).find('ul > li > img');
-                                } else if ('www.umei.cc' === currentHostname) {
-                                    imgObj = $(doc).find('.ImageBody p img');
-                                    {//移除图片附属广告
-                                        $('div div div.ad-widget-imageplus-sticker').parent().parent().remove();
-                                    }
-                                }
-                                else if ('www.meitulu.com' === currentHostname) {
-                                    imgObj = $(doc).find('div.content > center  > img');
-                                    {//http://www.meitulu.com广告遮挡层
-                                        $("a[id^='__tg_ciw_a__']").remove();
-                                        $("a[id^='__qdd_ciw_a__']").remove();
-                                        $('iframe').remove();//移除广告等无必要元素
-                                    }
-                                } else if ('www.17786.com' === currentHostname) {
-                                    imgObj = $(doc).find('img.IMG_show');
-                                    if (imgObj.length == 0) {
-                                        imgObj = $(doc).find('a#RightUrl img');
-                                    }
-                                } else if ('www.nvshens.com' === currentHostname || 'm.nvshens.com' === currentHostname) {
-                                    imgObj = $(doc).find('ul#hgallery img');
-                                    if (imgObj.length == 0) {
-                                        imgObj = $(doc).find('div#imgwrap img');
-                                    }
-                                } else if ('www.24meinv.me' === currentHostname) {
-                                    imgObj = $(doc).find('div.gtps.fl img');
-                                    $(imgObj).each(function (index) {
-                                        // log(index + ": " + $(this).prop('outerHTML'));
-                                        var imgSrc = $(this).attr('src').replace(/http:\/\/pic\.diercun\.com(.*?\/)m([\w.]+)$/img, "http://img.diercun.com$1$2");
-                                        $(this).attr('src', imgSrc);
-                                    });
-                                }
+
+                                imgObj = parseObj[currentHostname](doc);
+                                 
                                 var imgContainerCssSelector = '#c_' + _i;
                                 log(imgContainerCssSelector);
                                 var status = query($(imgContainerCssSelector), $(imgObj));
@@ -510,7 +528,7 @@ function query(objContainer, jqObj) {
         }
     });
 }
- 
+
 function injectAggregationRef(currentHostname) {
     var injectComponent =
         '<input id="captureBtn" type="button" value="截图并下载"/>' +
@@ -551,9 +569,15 @@ function injectAggregationRef(currentHostname) {
             $('div#dinfo').after(injectComponent);
             $('div#ddinfo').after(injectComponent);
         }
+        {//m.nvshens.com
+            $('div#ms1').next().remove();
+        }
     } else if ('www.24meinv.me' === currentHostname) {
         {
             $('div.hd1').after(injectComponent);
+        }
+        {
+            $('#hgg1').remove();
         }
     }
     $('#injectaggregatBtn').after('<div id="c_container"></div>');
