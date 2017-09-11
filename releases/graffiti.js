@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.5
+// @version      2.6
 // @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)，美女86(17786.com)，24美女图片(24meinv.me)。待实现：。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
@@ -36,7 +36,7 @@ var blobUrlCache = {};
     priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
     priorityLog('已实现：蕾丝猫(http://www.lesmao.com)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)，宅男女神(http://www.nvshens.com)，24美女图片(24meinv.me)');
     priorityLog('已实现：绕过YouTube的年龄限制');
-    priorityLog('未实现：');
+    priorityLog('未实现：aitaotu.com;mzitu.com');
 
     var currentPageUrl = window.location.href;
     var currentHostname = window.location.hostname;
@@ -51,25 +51,26 @@ var blobUrlCache = {};
             var partPreUrl = match[1];
             var currentPageNum = match[2];
             var subfixUrl = match[3];
-            var limitPageStr=$('#thread-page > div > div > label > span').text();
+            var limitPageStr = $('#thread-page > div > div > label > span').text();
             var limitPageMatch = limitPageStr.match(/(\d+)/i);
-            if(limitPageMatch!=null){
-                limitPage=parseInt(limitPageMatch[1]);
+            if (limitPageMatch != null) {
+                limitPage = parseInt(limitPageMatch[1]);
             }
             currentWindowImpl(preUrl + partPreUrl, 1, limitPage, subfixUrl, currentHostname);
         } else {
             // Match attempt failed
-            var mod = getUrlParam('mod');
+            var dest = window.location.search.substr(1);
+            var mod = Alpha_Script.getParam(dest, 'mod');
             if ('viewthread' === mod) {
-                var tid = getUrlParam('tid');
+                var tid = Alpha_Script.getParam(dest, 'tid');
                 var partPreUrl = '/forum.php?mod=viewthread&tid=' + tid + '&page=';
-                var subfixUrl = '';
-                var limitPageStr=$('#page > div > label > span').text();
+                var suffixUrl = '';
+                var limitPageStr = $('#page > div > label > span').text();
                 var limitPageMatch = limitPageStr.match(/(\d+)/i);
-                if(limitPageMatch!=null){
-                    limitPage=parseInt(limitPageMatch[1]);
+                if (limitPageMatch != null) {
+                    limitPage = parseInt(limitPageMatch[1]);
                 }
-                currentWindowImpl(preUrl + partPreUrl, 1, limitPage, subfixUrl, currentHostname);
+                currentWindowImpl(preUrl + partPreUrl, 1, limitPage, suffixUrl, currentHostname);
             }
         }
     } else if ('www.umei.cc' === currentHostname) {
@@ -78,8 +79,8 @@ var blobUrlCache = {};
         if (match !== null) {
             var partPreUrl = match[1];
             var pageId = match[2];
-            var subfixUrl = '.htm';
-            log(preUrl + partPreUrl + pageId + subfixUrl);
+            var suffixUrl = '.htm';
+            log(preUrl + partPreUrl + pageId + suffixUrl);
             var pageStr = $('.NewPages li a').html();
             log(pageStr);
             var myregexp = /共(\d+)页/m;
@@ -87,7 +88,7 @@ var blobUrlCache = {};
             var limitPage = 0;
             if (match2 != null) {
                 limitPage = match2[1];
-                currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, subfixUrl, currentHostname);
+                currentWindowImpl(preUrl + partPreUrl + pageId + '_', limitPage, suffixUrl, currentHostname);
             }
         }
     }
@@ -97,12 +98,12 @@ var blobUrlCache = {};
         if (match !== null) {
             var partPreUrl = match[1];
             var pageId = match[2];
-            var subfixUrl = '.html';
-            log(preUrl + partPreUrl + pageId + subfixUrl);
+            var suffixUrl = '.html';
+            log(preUrl + partPreUrl + pageId + suffixUrl);
             var pageStr = $('a.a1:last').prev().html();
             log(pageStr);
             var limitPage = parseInt(pageStr);
-            currentWindowImpl(preUrl + partPreUrl + pageId + '_', 1, limitPage, subfixUrl, currentHostname);
+            currentWindowImpl(preUrl + partPreUrl + pageId + '_', 1, limitPage, suffixUrl, currentHostname);
         }
     } else if ('www.17786.com' === currentHostname) {
         var match = currentPathname.match(/^\/(\d+)(?:_\d+)?\.html$/im); //http://www.17786.com/7745_1.html
@@ -110,8 +111,8 @@ var blobUrlCache = {};
         if (match !== null) {
             var partPreUrl = '';
             var pageId = match[1];
-            var subfixUrl = '.html';
-            log(preUrl + partPreUrl + pageId + subfixUrl);
+            var suffixUrl = '.html';
+            log(preUrl + partPreUrl + pageId + suffixUrl);
             var pageStr = $('h2').html();
             log(pageStr);
             var limitPage = 0;
@@ -119,7 +120,7 @@ var blobUrlCache = {};
             var match = myregexp.exec(pageStr);
             if (match != null) {
                 limitPage = parseInt(match[1]);
-                currentWindowImpl(preUrl + partPreUrl + pageId + '_', 1, limitPage, subfixUrl, currentHostname);
+                currentWindowImpl(preUrl + partPreUrl + pageId + '_', 1, limitPage, suffixUrl, currentHostname);
             }
         } else {
             var match = currentPathname.match(/^\/((?:\w+\/)+)(\d+)(?:_\d+)?\.html$/im);//http://www.17786.com/beautiful/feizhuliutupian/44569.html
@@ -127,12 +128,12 @@ var blobUrlCache = {};
             if (match !== null) {
                 var partPreUrl = match[1];
                 var pageId = match[2];
-                var subfixUrl = '.html';
-                log(preUrl + partPreUrl + pageId + subfixUrl);
+                var suffixUrl = '.html';
+                log(preUrl + partPreUrl + pageId + suffixUrl);
                 var pageStr = $('h2').html();
                 log(pageStr);
                 var limitPage = 40;
-                currentWindowImpl(preUrl + partPreUrl + pageId + '_', 1, limitPage, subfixUrl, currentHostname);
+                currentWindowImpl(preUrl + partPreUrl + pageId + '_', 1, limitPage, suffixUrl, currentHostname);
             }
         }
     } else if ('www.nvshens.com' === currentHostname || 'm.nvshens.com' === currentHostname) {
@@ -141,8 +142,8 @@ var blobUrlCache = {};
         if (match !== null) {
             var partPreUrl = match[1];
             var pageId = '/';
-            var subfixUrl = '.html';
-            log(preUrl + partPreUrl + pageId + subfixUrl);
+            var suffixUrl = '.html';
+            log(preUrl + partPreUrl + pageId + suffixUrl);
             var pageStr = $('div#dinfo span[style="color: #DB0909"]').html();
             if (!pageStr) {
                 pageStr = $('div#ddinfo span[style="color: #DB0909"]').html();
@@ -158,7 +159,7 @@ var blobUrlCache = {};
                 limitPage = limitPage + 1;
             }
             log(limitPage);
-            currentWindowImpl(preUrl + partPreUrl + pageId, 1, limitPage, subfixUrl, currentHostname);
+            currentWindowImpl(preUrl + partPreUrl + pageId, 1, limitPage, suffixUrl, currentHostname);
         }
     } else if ('www.24meinv.me' === currentHostname) {
         {//去广告
@@ -176,8 +177,8 @@ var blobUrlCache = {};
             if (match !== null) {
                 var partPreUrl = match[1];
                 var pageId = '';
-                var subfixUrl = '.html';
-                log(preUrl + partPreUrl + pageId + subfixUrl);
+                var suffixUrl = '.html';
+                log(preUrl + partPreUrl + pageId + suffixUrl);
                 var pageStr = $('div.page.ps > a:last-child').attr('href');
                 var limitPage = 0;
                 if (pageStr) {
@@ -189,7 +190,7 @@ var blobUrlCache = {};
                     if (match != null) {
                         limitPage = parseInt(match[2]);
                         limitPage++;//首页从0开始
-                        currentWindowImpl(preUrl + partPreUrl + pageId + '_', 0, limitPage, subfixUrl, currentHostname);
+                        currentWindowImpl(preUrl + partPreUrl + pageId + '_', 0, limitPage, suffixUrl, currentHostname);
                     } else {
 
                     }
@@ -202,7 +203,7 @@ var blobUrlCache = {};
         var vId = "";
         var id = setInterval(function () {
             $('#player-unavailable').not('.hid').addClass('hid');
-            var curVId = getUrlParam('v');
+            var curVId = Alpha_Script.getParam(dest, 'v');
             if (curVId != null && vId != curVId) {
                 log('切换VID');
                 vId = curVId;
@@ -256,16 +257,24 @@ function packageAndDownload() {
                 length--;
             } else {
                 if (!imgSrc.startsWith('blob:')) {
-                    obtainBlob(imgSrc, function (response) {
-                        var responseHeaders = parseHeaders(response.responseHeaders);
-                        var contentType = responseHeaders['Content-Type'];
-                        if (!contentType) {
-                            contentType = "image/png";
+                    Alpha_Script.obtainHtml({
+                        url: imgSrc,
+                        method: 'GET',
+                        headers: {
+                            "Accept": "application/*"
+                        },
+                        responseType: 'blob',
+                        onload: function (response) {
+                            var responseHeaders = Alpha_Script.parseHeaders(response.responseHeaders);
+                            var contentType = responseHeaders['Content-Type'];
+                            if (!contentType) {
+                                contentType = "image/png";
+                            }
+                            var blob = new Blob([response.response], {type: contentType});
+                            blobCache[imgSrc] = blob;
+                            img.file(index + ".jpg", blobCache[imgSrc], {base64: false});
+                            length--;
                         }
-                        var blob = new Blob([response.response], {type: contentType});
-                        blobCache[imgSrc] = blob;
-                        img.file(index + ".jpg", blobCache[imgSrc], {base64: false});
-                        length--;
                     });
                 } else {
                     img.file(index + ".jpg", blobCache[blobUrlCache[imgSrc]], {base64: false});
@@ -285,14 +294,6 @@ function packageAndDownload() {
     }, 100);
 }
 
-//获取参数
-function getUrlParam(name) {
-    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-    var r = window.location.search.substr(1).match(reg);
-    if (r != null) return decodeURI(r[2]);
-    return null;
-}
-
 function currentWindowImpl(preUrl, startIndex, limitPage, subfixUrl, currentHostname) {
     injectAggregationRef(currentHostname);
     switchAggregationBtn(preUrl, startIndex, limitPage, subfixUrl, currentHostname);
@@ -302,10 +303,10 @@ function currentWindowImpl(preUrl, startIndex, limitPage, subfixUrl, currentHost
 }
 
 //按钮切换
-function switchAggregationBtn(preUrl, startIndex, limitPage, subfixUrl, currentHostname) {
+function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentHostname) {
     if ($('#injectaggregatBtn').val() === '聚合显示') {
         $('#injectaggregatBtn').val('聚合隐藏');
-        collectPics(startIndex, window, preUrl, limitPage, subfixUrl, currentHostname);
+        collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname);
         $('#c_container').show();
 
         if ('www.lesmao.com' === currentHostname) {
@@ -372,7 +373,7 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, subfixUrl, currentH
 
 //日志
 function log(c) {
-    if (false) {
+    if (true) {
         console.log(c);
     }
 }
@@ -414,64 +415,79 @@ function dependenceJQuery(e, callback) {
 }
 
 //收集图片，回调
-function collectPics(i, e, preUrl, limitPage, subfixUrl, currentHostname) {
-    var id = e.setInterval(function () {
-        if (e.$) {
-            e.clearInterval(id);
+function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) {
+    var id = setInterval(function () {
+        if ($) {
+            clearInterval(id);
             var breakPageLoop = false;
             log('limitPage::' + limitPage);
-            for (i; i <= limitPage; i++) {
+            for (var i = startIndex; i <= limitPage; i++) {
                 //创建div去装各自
-                e.$('#c_container').append('<div id="c_' + i + '"></div>');
+                $('#c_container').append('<div id="c_' + i + '"></div>');
                 if (!breakPageLoop) {
                     var lock = true;
-                    log(preUrl + i + subfixUrl);
-                    obtainHtml(preUrl + i + subfixUrl, function (html, i) {
-
-                        // log(html);
-                        var parser = new DOMParser();
-                        var doc = parser.parseFromString(html, "text/html");
-                        // log(preUrl + i + subfixUrl);
-                        var imgObj;
-                        if ('www.lesmao.com' === currentHostname) {
-                            imgObj = $(doc).find('ul > li > img');
-                        } else if ('www.umei.cc' === currentHostname) {
-                            imgObj = $(doc).find('.ImageBody p img');
-                            {//移除图片附属广告
-                                $('div div div.ad-widget-imageplus-sticker').parent().parent().remove();
+                    log(preUrl + i + suffixUrl);
+                    Alpha_Script.obtainHtml({
+                        url: preUrl + i + suffixUrl,
+                        headers: Alpha_Script.parseHeaders("Accept:image/webp,image/*,*/*;q=0.8\n" +
+                            "Accept-Encoding:gzip, deflate, sdch\n" +
+                            "Accept-Language:zh-CN,zh;q=0.8\n" +
+                            "Referer:" + window.location.href + "\n" +
+                            "User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+                        ),
+                        method: 'GET',
+                        onload: function () {
+                            var _i = i;
+                            return function (response) {
+                                var html = response.responseText;
+                                // log(html);
+                                var parser = new DOMParser();
+                                var doc = parser.parseFromString(html, "text/html");
+                                // log(preUrl + _i + suffixUrl);
+                                var imgObj;
+                                if ('www.lesmao.com' === currentHostname) {
+                                    imgObj = $(doc).find('ul > li > img');
+                                } else if ('www.umei.cc' === currentHostname) {
+                                    imgObj = $(doc).find('.ImageBody p img');
+                                    {//移除图片附属广告
+                                        $('div div div.ad-widget-imageplus-sticker').parent().parent().remove();
+                                    }
+                                }
+                                else if ('www.meitulu.com' === currentHostname) {
+                                    imgObj = $(doc).find('div.content > center  > img');
+                                    {//http://www.meitulu.com广告遮挡层
+                                        $("a[id^='__tg_ciw_a__']").remove();
+                                        $("a[id^='__qdd_ciw_a__']").remove();
+                                        $('iframe').remove();//移除广告等无必要元素
+                                    }
+                                } else if ('www.17786.com' === currentHostname) {
+                                    imgObj = $(doc).find('img.IMG_show');
+                                    if (imgObj.length == 0) {
+                                        imgObj = $(doc).find('a#RightUrl img');
+                                    }
+                                } else if ('www.nvshens.com' === currentHostname || 'm.nvshens.com' === currentHostname) {
+                                    imgObj = $(doc).find('ul#hgallery img');
+                                    if (imgObj.length == 0) {
+                                        imgObj = $(doc).find('div#imgwrap img');
+                                    }
+                                } else if ('www.24meinv.me' === currentHostname) {
+                                    imgObj = $(doc).find('div.gtps.fl img');
+                                    $(imgObj).each(function (index) {
+                                        // log(index + ": " + $(this).prop('outerHTML'));
+                                        var imgSrc = $(this).attr('src').replace(/http:\/\/pic\.diercun\.com(.*?\/)m([\w.]+)$/img, "http://img.diercun.com$1$2");
+                                        $(this).attr('src', imgSrc);
+                                    });
+                                }
+                                var imgContainerCssSelector = '#c_' + _i;
+                                log(imgContainerCssSelector);
+                                var status = query($(imgContainerCssSelector), $(imgObj));
+                                if ('end page' === status) {
+                                    breakPageLoop = true;
+                                }
+                                lock = false;
                             }
-                        }
-                        else if ('www.meitulu.com' === currentHostname) {
-                            imgObj = $(doc).find('div.content > center  > img');
-                            {//http://www.meitulu.com广告遮挡层
-                                $("a[id^='__tg_ciw_a__']").remove();
-                                $("a[id^='__qdd_ciw_a__']").remove();
-                                $('iframe').remove();//移除广告等无必要元素
-                            }
-                        } else if ('www.17786.com' === currentHostname) {
-                            imgObj = $(doc).find('img.IMG_show');
-                            if (imgObj.length == 0) {
-                                imgObj = $(doc).find('a#RightUrl img');
-                            }
-                        } else if ('www.nvshens.com' === currentHostname || 'm.nvshens.com' === currentHostname) {
-                            imgObj = $(doc).find('ul#hgallery img');
-                            if (imgObj.length == 0) {
-                                imgObj = $(doc).find('div#imgwrap img');
-                            }
-                        } else if ('www.24meinv.me' === currentHostname) {
-                            imgObj = $(doc).find('div.gtps.fl img');
-                            $(imgObj).each(function (index) {
-                                // log(index + ": " + $(this).prop('outerHTML'));
-                                var imgSrc = $(this).attr('src').replace(/http:\/\/pic\.diercun\.com(.*?\/)m([\w.]+)$/img, "http://img.diercun.com$1$2");
-                                $(this).attr('src', imgSrc);
-                            });
-                        }
-                        var status = query(e.$('#c_' + i), $(imgObj));
-                        if ('end page' === status) {
-                            breakPageLoop = true;
-                        }
-                        lock = false;
-                    }, i);
+                        }()
+                    });
                 } else {
                     break;
                 }
@@ -494,39 +510,7 @@ function query(objContainer, jqObj) {
         }
     });
 }
-
-//获取网页
-function obtainHtml(url, sucess, i) {
-    var headers = parseHeaders("Accept:image/webp,image/*,*/*;q=0.8\n" +
-        "Accept-Encoding:gzip, deflate, sdch\n" +
-        "Accept-Language:zh-CN,zh;q=0.8\n" +
-        "Referer:" + window.location.href + "\n" +
-        "User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
-    );
-    GM_xmlhttpRequest({
-        method: 'GET',
-        headers: headers,
-        url: url,
-        onload: function (response) {
-            sucess(response.responseText, i);
-        }
-    });
-}
-
-function obtainBlob(url, sucess, i) {
-    GM_xmlhttpRequest({
-        method: 'GET',
-        headers: {
-            "Accept": "application/*"
-        },
-        url: url,
-        responseType: 'blob',
-        onload: function (response) {
-            sucess(response, i);
-        }
-    });
-}
-
+ 
 function injectAggregationRef(currentHostname) {
     var injectComponent =
         '<input id="captureBtn" type="button" value="截图并下载"/>' +
@@ -588,15 +572,23 @@ function bindBtn(e, callback) {
                     length--;
                 } else {
                     if (!imgSrc.startsWith('blob:')) {
-                        obtainBlob(imgSrc, function (response) {
-                            var responseHeaders = parseHeaders(response.responseHeaders);
-                            var contentType = responseHeaders['Content-Type'];
-                            if (!contentType) {
-                                contentType = "image/png";
+                        Alpha_Script.obtainHtml({
+                            url: imgSrc,
+                            method: 'GET',
+                            headers: {
+                                "Accept": "application/*"
+                            },
+                            responseType: 'blob',
+                            onload: function (response) {
+                                var responseHeaders = Alpha_Script.parseHeaders(response.responseHeaders);
+                                var contentType = responseHeaders['Content-Type'];
+                                if (!contentType) {
+                                    contentType = "image/png";
+                                }
+                                var blob = new Blob([response.response], {type: contentType});
+                                blobCache[imgSrc] = blob;
+                                length--;
                             }
-                            var blob = new Blob([response.response], {type: contentType});
-                            blobCache[imgSrc] = blob;
-                            length--;
                         });
                     }
                 }
@@ -642,14 +634,35 @@ function bindBtn(e, callback) {
     });
 }
 
-//解析返回头
-function parseHeaders(headStr) {
-    var o = {};
-    var myregexp = /^([^:]+):(.*)$/img;
-    var match = /^([^:]+):(.*)$/img.exec(headStr);
-    while (match != null) {
-        o[match[1].trim()] = match[2].trim();
-        match = myregexp.exec(headStr);
+
+var Alpha_Script = {
+    obtainHtml: function (options) {
+        options = options || {};
+        if (!options.url || !options.method) {
+            throw new Error("参数不合法");
+        }
+        GM_xmlhttpRequest(options);
+    },
+    parseHeaders: function (headStr) {
+        var o = {};
+        var myregexp = /^([^:]+):(.*)$/img;
+        var match = /^([^:]+):(.*)$/img.exec(headStr);
+        while (match != null) {
+            o[match[1].trim()] = match[2].trim();
+            match = myregexp.exec(headStr);
+        }
+        return o;
+    },
+    //获取参数
+    getParam: function (dest, name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = dest.match(reg);
+        if (r != null) return decodeURI(r[2]);
+        return null;
     }
-    return o;
 }
+
+Function.prototype.method = function (name, func) {
+    this.prototype[name] = func;
+    return this;
+};
