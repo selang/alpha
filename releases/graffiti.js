@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.7
+// @version      2.8
 // @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)，美女86(17786.com)，24美女图片(24meinv.me)。待实现：。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
 // @include       /https?\:\/\/www\.umei\.cc/
-// @include       /https?\:\/\/www\.meitulu\.com/
+// @include       /https?\:\/\log/www\.meitulu\.com/
 // @include       /https?\:\/\/www\.17786\.com/
 // @include       /https?\:\/\/www\.nvshens\.com/
 // @include       /https?\:\/\/m\.nvshens\.com/
@@ -30,6 +30,51 @@
 var blobCache = {};
 var blobUrlCache = {};
 
+
+
+
+Function.prototype.method = function (name, func) {
+    this.prototype[name] = func;
+    return this;
+};
+
+Object.prototype.method = function (name, func) {
+    this.prototype[name] = func;
+    return this;
+};
+
+Object.method('isArray', function () {
+    return Object.prototype.toString.apply(this) === '[object Array]';
+});
+
+
+var Alpha_Script = {
+    obtainHtml: function (options) {
+        options = options || {};
+        if (!options.url || !options.method) {
+            throw new Error("参数不合法");
+        }
+        GM_xmlhttpRequest(options);
+    },
+    parseHeaders: function (headStr) {
+        var o = {};
+        var myregexp = /^([^:]+):(.*)$/img;
+        var match = /^([^:]+):(.*)$/img.exec(headStr);
+        while (match != null) {
+            o[match[1].trim()] = match[2].trim();
+            match = myregexp.exec(headStr);
+        }
+        return o;
+    },
+    //获取参数
+    getParam: function (dest, name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = dest.match(reg);
+        if (r != null) return decodeURI(r[2]);
+        return null;
+    }
+};
+
 (function () {
     'use strict';
 
@@ -43,165 +88,231 @@ var blobUrlCache = {};
     var currentPathname = window.location.pathname;
     var currentProtocol = window.location.protocol;
     hotkeys();
-    if ('www.lesmao.com' === currentHostname) {
-        var match = currentPathname.match(/^\/(thread-\d+-)(\d+)(-\d+\.html)$/im);
-        var preUrl = currentProtocol + '//' + currentHostname + '/';
-        var limitPage = 30;
-        if (match !== null) {
-            var partPreUrl = match[1];
-            var currentPageNum = match[2];
-            var subfixUrl = match[3];
-            var limitPageStr = $('#thread-page > div > div > label > span').text();
-            var limitPageMatch = limitPageStr.match(/(\d+)/i);
-            if (limitPageMatch != null) {
-                limitPage = parseInt(limitPageMatch[1]);
-            }
-            currentWindowImpl(preUrl + partPreUrl, 1, limitPage, subfixUrl, currentHostname);
-        } else {
-            // Match attempt failed
-            var dest = window.location.search.substr(1);
-            var mod = Alpha_Script.getParam(dest, 'mod');
-            if ('viewthread' === mod) {
-                var tid = Alpha_Script.getParam(dest, 'tid');
-                var partPreUrl = '/forum.php?mod=viewthread&tid=' + tid + '&page=';
-                var suffixUrl = '';
-                var limitPageStr = $('#page > div > label > span').text();
-                var limitPageMatch = limitPageStr.match(/(\d+)/i);
-                if (limitPageMatch != null) {
-                    limitPage = parseInt(limitPageMatch[1]);
-                }
-                currentWindowImpl(preUrl + partPreUrl, 1, limitPage, suffixUrl, currentHostname);
-            }
-        }
-    } else if ('www.umei.cc' === currentHostname) {
-        var match = currentPathname.match(/^\/(\w+\/\w+(?:\/\w+)?\/)(\d+)(?:_\d+)?\.htm$/im);
-        var preUrl = currentProtocol + '//' + currentHostname + '/';
-        if (match !== null) {
-            var partPreUrl = match[1];
-            var pageId = match[2];
-            var suffixUrl = '.htm';
-            log(preUrl + partPreUrl + pageId + suffixUrl);
-            var pageStr = $('.NewPages li a').html();
-            log(pageStr);
-            var myregexp = /共(\d+)页/m;
-            var match2 = myregexp.exec(pageStr);
-            var limitPage = 0;
-            if (match2 != null) {
-                limitPage = match2[1];
-                currentWindowImpl(preUrl + partPreUrl + pageId + '_', 1,limitPage, suffixUrl, currentHostname);
-            }
-        }
-    }
-    else if ('www.meitulu.com' === currentHostname) {
-        var match = currentPathname.match(/^\/(item\/)(\d+)(?:_\d+)?\.html$/im);
-        var preUrl = currentProtocol + '//' + currentHostname + '/';
-        if (match !== null) {
-            var partPreUrl = match[1];
-            var pageId = match[2];
-            var suffixUrl = '.html';
-            log(preUrl + partPreUrl + pageId + suffixUrl);
-            var pageStr = $('a.a1:last').prev().html();
-            log(pageStr);
-            var limitPage = parseInt(pageStr);
-            currentWindowImpl(preUrl + partPreUrl + pageId + '_', 1, limitPage, suffixUrl, currentHostname);
-        }
-    } else if ('www.17786.com' === currentHostname) {
-        var match = currentPathname.match(/^\/(\d+)(?:_\d+)?\.html$/im); //http://www.17786.com/7745_1.html
-        var preUrl = currentProtocol + '//' + currentHostname + '/';
-        if (match !== null) {
-            var partPreUrl = '';
-            var pageId = match[1];
-            var suffixUrl = '.html';
-            log(preUrl + partPreUrl + pageId + suffixUrl);
-            var pageStr = $('h2').html();
-            log(pageStr);
-            var limitPage = 0;
-            var myregexp = /\(\d+\/(\d+)\)/im;
-            var match = myregexp.exec(pageStr);
-            if (match != null) {
-                limitPage = parseInt(match[1]);
-                currentWindowImpl(preUrl + partPreUrl + pageId + '_', 1, limitPage, suffixUrl, currentHostname);
-            }
-        } else {
-            var match = currentPathname.match(/^\/((?:\w+\/)+)(\d+)(?:_\d+)?\.html$/im);//http://www.17786.com/beautiful/feizhuliutupian/44569.html
-            var preUrl = currentProtocol + '//' + currentHostname + '/';
-            if (match !== null) {
-                var partPreUrl = match[1];
-                var pageId = match[2];
-                var suffixUrl = '.html';
-                log(preUrl + partPreUrl + pageId + suffixUrl);
-                var pageStr = $('h2').html();
-                log(pageStr);
-                var limitPage = 40;
-                currentWindowImpl(preUrl + partPreUrl + pageId + '_', 1, limitPage, suffixUrl, currentHostname);
-            }
-        }
-    } else if ('www.nvshens.com' === currentHostname || 'm.nvshens.com' === currentHostname) {
-        var match = currentPathname.match(/^\/(g\/\d+)\/?(?:\d+\.html)?$/im);
-        var preUrl = currentProtocol + '//' + currentHostname + '/';
-        if (match !== null) {
-            var partPreUrl = match[1];
-            var pageId = '/';
-            var suffixUrl = '.html';
-            log(preUrl + partPreUrl + pageId + suffixUrl);
-            var pageStr = $('div#dinfo span[style="color: #DB0909"]').html();
-            if (!pageStr) {
-                pageStr = $('div#ddinfo span[style="color: #DB0909"]').html();
-            }
-            var pageNumMatch = pageStr.match(/(\d+)张照片/im);
-            if (pageNumMatch != null) {
-                pageStr = pageNumMatch[1];
-            }
-            var limitPage = parseInt(pageStr);
-            var number = limitPage % 5;
-            limitPage = Math.floor(limitPage / 5);
-            if (number > 0) {
-                limitPage = limitPage + 1;
-            }
-            log(limitPage);
-            currentWindowImpl(preUrl + partPreUrl + pageId, 1, limitPage, suffixUrl, currentHostname);
-        }
-    } else if ('www.24meinv.me' === currentHostname) {
-        {//去广告
-            var id = setInterval(function () {
-                $('#hgg2').remove();
-                $('#j__s').remove();
-                $('#__jx_div').remove();
-                $('iframe').remove();
-                $('body > div.foot > div > div:nth-child(13)').remove();
-            }, 100);
-        }
-        {
-            var match = currentPathname.match(/^\/(hd\d\/\w+?)(?:_\d+)?\.html$/im);
-            var preUrl = currentProtocol + '//' + currentHostname + '/';
-            if (match !== null) {
-                var partPreUrl = match[1];
-                var pageId = '';
-                var suffixUrl = '.html';
-                log(preUrl + partPreUrl + pageId + suffixUrl);
-                var pageStr = $('div.page.ps > a:last-child').attr('href');
-                var limitPage = 0;
-                if (pageStr) {
-                    var myregexp = /^\/(hd\d\/\w+?)(?:_(\d+))?\.html$/im;
-                    var match = myregexp.exec(pageStr);
-                    if (match == null) {
-                        match = myregexp.exec(currentPathname);
+    var pagesCommonObj = function () {
+        var domains = ['www.lesmao.com', 'www.umei.cc', 'www.meitulu.com', 'www.17786.com',
+            'www.nvshens.com', 'm.nvshens.com', 'www.24meinv.me'];
+        return {
+            'meet': function (options) {
+                options = options || {};
+                options.domain = options.domain || '';
+                options.success = options.success || function () {
+
+                };
+                options.fail = options.fail || function () {
+
+                };
+                var matchDomain = false;
+                log(options.domain);
+                if (options.domain.isArray()) {
+                    for (var i = 0; i < options.domain.length; i++) {
+                        if (domains.indexOf(options.domain[i]) != -1) {
+                            matchDomain = true;
+                            break;
+                        }
                     }
+                } else {
+                    matchDomain = domains.indexOf(options.domain) != -1 || options.domain === '';
+                }
+                if (matchDomain) {
+                    options.success();
+                } else {
+                    options.fail();
+                }
+                return this;
+            }
+        };
+    };
+    var commonObj = pagesCommonObj();
+    commonObj.meet(
+        {
+            domain: 'www.lesmao.com',
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            limitPage: 30,
+            success: function () {
+                var match = currentPathname.match(/^\/(thread-\d+-)(\d+)(-\d+\.html)$/im);
+                if (match !== null) {
+                    var partPreUrl = match[1];
+                    var suffixUrl = match[3];
+                    var limitPageStr = $('#thread-page > div > div > label > span').text();
+                    var limitPageMatch = limitPageStr.match(/(\d+)/i);
+                    if (limitPageMatch != null) {
+                        this.limitPage = parseInt(limitPageMatch[1]);
+                    }
+                    currentWindowImpl(this.startUrl + partPreUrl, 1, this.limitPage, suffixUrl, currentHostname);
+                } else {
+                    // Match attempt failed
+                    var dest = window.location.search.substr(1);
+                    var mod = Alpha_Script.getParam(dest, 'mod');
+                    if ('viewthread' === mod) {
+                        var tid = Alpha_Script.getParam(dest, 'tid');
+                        var partPreUrl = '/forum.php?mod=viewthread&tid=' + tid + '&page=';
+                        var suffixUrl = '';
+                        var limitPageStr = $('#page > div > label > span').text();
+                        var limitPageMatch = limitPageStr.match(/(\d+)/i);
+                        if (limitPageMatch != null) {
+                            this.limitPage = parseInt(limitPageMatch[1]);
+                        }
+                        currentWindowImpl(this.startUrl + partPreUrl, 1, this.limitPage, suffixUrl, currentHostname);
+                    }
+                }
+            }
+        });
+    commonObj.meet(
+        {
+            domain: 'www.umei.cc',
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            limitPage: 0,
+            success: function () {
+                var match = currentPathname.match(/^\/(\w+\/\w+(?:\/\w+)?\/)(\d+)(?:_\d+)?\.htm$/im);
+                if (match !== null) {
+                    var partPreUrl = match[1];
+                    var pageId = match[2];
+                    var suffixUrl = '.htm';
+                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
+                    var pageStr = $('.NewPages li a').html();
+                    log(pageStr);
+                    var pageTotalRegexp = /共(\d+)页/m;
+                    var pageTotalMatch = pageTotalRegexp.exec(pageStr);
+                    if (pageTotalMatch != null) {
+                        this.limitPage = pageTotalMatch[1];
+                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 1, this.limitPage, suffixUrl, currentHostname);
+                    }
+                }
+            }
+        });
+    commonObj.meet(
+        {
+            domain: '',
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            limitPage: 0,
+            success: function () {
+
+            }
+        });
+
+    commonObj.meet(
+        {
+            domain: 'www.meitulu.com',
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            limitPage: 0,
+            success: function () {
+                var match = currentPathname.match(/^\/(item\/)(\d+)(?:_\d+)?\.html$/im);
+                if (match !== null) {
+                    var partPreUrl = match[1];
+                    var pageId = match[2];
+                    var suffixUrl = '.html';
+                    var pageStr = $('a.a1:last').prev().html();
+                    log(pageStr);
+                    this.limitPage = parseInt(pageStr);
+                    currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 1, this.limitPage, suffixUrl, currentHostname);
+                }
+            }
+        });
+    commonObj.meet(
+        {
+            domain: 'www.17786.com',
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            success: function () {
+                var match = currentPathname.match(/^\/(\d+)(?:_\d+)?\.html$/im); //http://www.17786.com/7745_1.html
+                if (match !== null) {
+                    var partPreUrl = '';
+                    var pageId = match[1];
+                    var suffixUrl = '.html';
+                    var pageStr = $('h2').html();
+                    var limitPage = 0;
+                    var pageStrRegexp = /\(\d+\/(\d+)\)/im;
+                    var match = pageStrRegexp.exec(pageStr);
                     if (match != null) {
-                        log('limitPage:'+limitPage);
-                        limitPage = parseInt(match[2]);
-                        limitPage++;//首页从0开始
-                        currentWindowImpl(preUrl + partPreUrl + pageId + '_', 0, limitPage, suffixUrl, currentHostname);
+                        limitPage = parseInt(match[1]);
+                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 1, limitPage, suffixUrl, currentHostname);
+                    }
+                } else {
+                    var match = currentPathname.match(/^\/((?:\w+\/)+)(\d+)(?:_\d+)?\.html$/im);//http://www.17786.com/beautiful/feizhuliutupian/44569.html
+                    if (match !== null) {
+                        var partPreUrl = match[1];
+                        var pageId = match[2];
+                        var suffixUrl = '.html';
+                        var pageStr = $('h2').html();
+                        log(pageStr);
+                        var limitPage = 40;
+                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 1, limitPage, suffixUrl, currentHostname);
+                    }
+                }
+            }
+        });
+    commonObj.meet(
+        {
+            domain: ['www.nvshens.com', 'm.nvshens.com'],
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            success: function () {
+                var match = currentPathname.match(/^\/(g\/\d+)\/?(?:\d+\.html)?$/im);
+                if (match !== null) {
+                    var partPreUrl = match[1];
+                    var pageId = '/';
+                    var suffixUrl = '.html';
+                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
+                    var pageStr = $('div#dinfo span[style="color: #DB0909"]').html();
+                    if (!pageStr) {
+                        pageStr = $('div#ddinfo span[style="color: #DB0909"]').html();
+                    }
+                    var pageNumMatch = pageStr.match(/(\d+)张照片/im);
+                    if (pageNumMatch != null) {
+                        pageStr = pageNumMatch[1];
+                    }
+                    var limitPage = parseInt(pageStr);
+                    var number = limitPage % 5;
+                    limitPage = Math.floor(limitPage / 5);
+                    if (number > 0) {
+                        limitPage = limitPage + 1;
+                    }
+                    log(limitPage);
+                    currentWindowImpl(this.startUrl + partPreUrl + pageId, 1, limitPage, suffixUrl, currentHostname);
+                }
+            }
+        });
+
+    commonObj.meet(
+        {
+            domain: 'www.24meinv.me',
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            limitPage: 0,
+            removeAd: function () {
+                var id = setInterval(function () {
+                    $('#hgg2').remove();
+                    $('#j__s').remove();
+                    $('#__jx_div').remove();
+                    $('iframe').remove();
+                    $('body > div.foot > div > div:nth-child(13)').remove();
+                }, 100);
+            },
+            success: function () {
+                this.removeAd();
+                var match = currentPathname.match(/^\/(hd\d\/\w+?)(?:_\d+)?\.html$/im);
+                if (match !== null) {
+                    var partPreUrl = match[1];
+                    var pageId = '';
+                    var suffixUrl = '.html';
+                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
+                    var pageStr = $('div.page.ps > a:last-child').attr('href');
+                    if (pageStr) {
+                        var myregexp = /^\/(hd\d\/\w+?)(?:_(\d+))?\.html$/im;
+                        var match = myregexp.exec(pageStr);
+                        if (match == null) {
+                            match = myregexp.exec(currentPathname);
+                        }
+                        if (match != null) {
+                            this.limitPage = parseInt(match[2]);
+                            this.limitPage++;//首页从0开始
+                            currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 0, this.limitPage, suffixUrl, currentHostname);
+                        } else {
+
+                        }
                     } else {
 
                     }
-                } else {
-                     
                 }
             }
-        }
-    }
-
+        });
     if ('www.youtube.com' === currentHostname) {
         var vId = "";
         var id = setInterval(function () {
@@ -300,7 +411,7 @@ function packageAndDownload() {
 function currentWindowImpl(preUrl, startIndex, limitPage, subfixUrl, currentHostname) {
     injectAggregationRef(currentHostname);
     switchAggregationBtn(preUrl, startIndex, limitPage, subfixUrl, currentHostname);
-    dependenceJQuery(window, bindBtn(window, function (e) {
+    dependenceJQuery(window, bindBtn(function (e) {
         switchAggregationBtn(preUrl, startIndex, limitPage, subfixUrl, currentHostname);
     }));
 }
@@ -312,65 +423,73 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentH
         collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname);
         $('#c_container').show();
 
-        if ('www.lesmao.com' === currentHostname) {
-            $('#thread-pic').hide();
-            $('#thread-page').hide();
-        } else if ('www.umei.cc' === currentHostname) {
-            $('.ImageBody').hide();
-        }
-        else if ('www.meitulu.com' === currentHostname) {
-            $('div.content').hide();
-            $('body > center').hide();
-        } else if ('www.17786.com' === currentHostname) {
-            {
+        var hideObj = {
+            'www.lesmao.com': function () {
+                $('#thread-pic').hide();
+                $('#thread-page').hide();
+            },
+            'www.umei.cc': function () {
+                $('.ImageBody').hide();
+            },
+            'www.meitulu.com': function () {
+                $('div.content').hide();
+                $('body > center').hide();
+            },
+            'www.17786.com': function () {
                 $('div.img_box').hide();
                 $('div.wt-pagelist').hide();
-            }
-            $('div#picBody').hide();
-            $('.articleV2Page').hide();
-        } else if ('www.nvshens.com' === currentHostname || 'm.nvshens.com' === currentHostname) {
-            {
+                $('div#picBody').hide();
+                $('.articleV2Page').hide();
+            },
+            'www.nvshens.com': function () {
                 $('div.ck-box-unit').hide();
                 $('div.photos').hide();
                 $('div#imgwrap').hide();
-            }
-        } else if ('www.24meinv.me' === currentHostname) {
-            {
+            },
+            'm.nvshens.com': function () {
+                return this['www.nvshens.com'];
+            },
+            'www.24meinv.me': function () {
                 $('div.gtps.fl').hide();
             }
-        }
-
+        };
+        hideObj[currentHostname]();
     } else {
         $('#injectaggregatBtn').val('聚合显示');
         $('#c_container').hide();
 
-        if ('www.lesmao.com' === currentHostname) {
-            $('#thread-pic').show();
-            $('#thread-page').show();
-        } else if ('www.umei.cc' === currentHostname) {
-            $('.ImageBody').show();
-        }
-        else if ('www.meitulu.com' === currentHostname) {
-            $('div.content').show();
-            $('body > center').show();
-        } else if ('www.17786.com' === currentHostname) {
-            {
+        var showObj = {
+            'www.lesmao.com': function () {
+                $('#thread-pic').show();
+                $('#thread-page').show();
+            },
+            'www.umei.cc': function () {
+                $('.ImageBody').show();
+            },
+            'www.meitulu.com': function () {
+                $('div.content').show();
+                $('body > center').show();
+            },
+            'www.17786.com': function () {
                 $('div.img_box').show();
                 $('div.wt-pagelist').show();
-            }
-            $('div#picBody').show();
-            $('.articleV2Page').show();
-        } else if ('www.nvshens.com' === currentHostname || 'm.nvshens.com' === currentHostname) {
-            {
+
+                $('div#picBody').show();
+                $('.articleV2Page').show();
+            },
+            'www.nvshens.com': function () {
                 $('div.ck-box-unit').show();
                 $('div.photos').show();
                 $('div#imgwrap').show();
-            }
-        } else if ('www.24meinv.me' === currentHostname) {
-            {
+            },
+            'm.nvshens.com': function () {
+                return this['www.nvshens.com'];
+            },
+            'www.24meinv.me': function () {
                 $('div.gtps.fl').show();
             }
-        }
+        };
+        showObj[currentHostname]();
     }
 }
 
@@ -495,7 +614,7 @@ function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) 
                                 var imgObj;
 
                                 imgObj = parseObj[currentHostname](doc);
-                                 
+
                                 var imgContainerCssSelector = '#c_' + _i;
                                 log(imgContainerCssSelector);
                                 var status = query($(imgContainerCssSelector), $(imgObj));
@@ -536,55 +655,50 @@ function injectAggregationRef(currentHostname) {
         '<input id="packageBtn" type="button" value="打包下载聚合图片"/>' +
         '<span>&nbsp;&nbsp;</span>' +
         '<input id="injectaggregatBtn" type="button" value="聚合显示"/>';
-    if ('www.lesmao.com' === currentHostname) {
-        if ($('.thread-tr')) {
+    var injectAggregateObj = {
+        'www.lesmao.com': function () {
             $('.thread-tr').after(injectComponent);
-        }
-        if ($('#vt')) {
             $('#vt').append(injectComponent);
-        }
-    } else if ('www.umei.cc' === currentHostname) {
-        if ($('.hr10')) {//http://www.umei.cc/weimeitupian/oumeitupian/20043_2.htm
-            $($('.hr10')[0]).after(injectComponent);
-            $('iframe').remove();//移除广告等无必要元素
-        }
-    }
-    else if ('www.meitulu.com' === currentHostname) {
-        if ($('div.bk3')) {
-            $('div.bk3').after(injectComponent);
-            {//http://www.meitulu.com广告遮挡层
-                $("a[id^='__tg_ciw_a__']").remove();
-                $("a[id^='__qdd_ciw_a__']").remove();
+        },
+        'www.umei.cc': function () {
+            if ($('.hr10')) {//http://www.umei.cc/weimeitupian/oumeitupian/20043_2.htm
+                $($('.hr10')[0]).after(injectComponent);
                 $('iframe').remove();//移除广告等无必要元素
             }
-        }
-    } else if ('www.17786.com' === currentHostname) {
-        {
+        },
+        'www.meitulu.com': function () {
+            if ($('div.bk3')) {
+                $('div.bk3').after(injectComponent);
+                {//http://www.meitulu.com广告遮挡层
+                    $("a[id^='__tg_ciw_a__']").remove();
+                    $("a[id^='__qdd_ciw_a__']").remove();
+                    $('iframe').remove();//移除广告等无必要元素
+                }
+            }
+        },
+        'www.17786.com': function () {
             $('div.tsmaincont-desc').after(injectComponent);
-        }
-        $('div.articleV2Desc').after(injectComponent);
-    } else if ('www.nvshens.com' === currentHostname || 'm.nvshens.com' === currentHostname) {
-        $('div[id^=mms]').remove();//移除广告等无必要元素
-        {
+            $('div.articleV2Desc').after(injectComponent);
+        },
+        'www.nvshens.com': function () {
+            $('div[id^=mms]').remove();//移除广告等无必要元素
             $('div#dinfo').after(injectComponent);
+        },
+        'm.nvshens.com': function () {
             $('div#ddinfo').after(injectComponent);
-        }
-        {//m.nvshens.com
             $('div#ms1').next().remove();
-        }
-    } else if ('www.24meinv.me' === currentHostname) {
-        {
+        },
+        'www.24meinv.me': function () {
             $('div.hd1').after(injectComponent);
-        }
-        {
             $('#hgg1').remove();
         }
-    }
+    };
+    injectAggregateObj[currentHostname]();
     $('#injectaggregatBtn').after('<div id="c_container"></div>');
 }
 
 
-function bindBtn(e, callback) {
+function bindBtn(callback) {
     $('#injectaggregatBtn').bind('click', callback);
     $('#captureBtn').bind('click', function (e) {
         var imgList = $('img[label="sl"]');
@@ -657,36 +771,3 @@ function bindBtn(e, callback) {
         packageAndDownload();
     });
 }
-
-
-var Alpha_Script = {
-    obtainHtml: function (options) {
-        options = options || {};
-        if (!options.url || !options.method) {
-            throw new Error("参数不合法");
-        }
-        GM_xmlhttpRequest(options);
-    },
-    parseHeaders: function (headStr) {
-        var o = {};
-        var myregexp = /^([^:]+):(.*)$/img;
-        var match = /^([^:]+):(.*)$/img.exec(headStr);
-        while (match != null) {
-            o[match[1].trim()] = match[2].trim();
-            match = myregexp.exec(headStr);
-        }
-        return o;
-    },
-    //获取参数
-    getParam: function (dest, name) {
-        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-        var r = dest.match(reg);
-        if (r != null) return decodeURI(r[2]);
-        return null;
-    }
-}
-
-Function.prototype.method = function (name, func) {
-    this.prototype[name] = func;
-    return this;
-};
