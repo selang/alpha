@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.8
+// @version      2.9
 // @description  目标是聚合美女图片，省去翻页烦恼。已实现：蕾丝猫(lesmao.com)，优美(umei.cc)，美图录(meitulu.com)，美女86(17786.com)，24美女图片(24meinv.me)。待实现：。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.com/
@@ -10,8 +10,10 @@
 // @include       /https?\:\/\/www\.17786\.com/
 // @include       /https?\:\/\/www\.nvshens\.com/
 // @include       /https?\:\/\/m\.nvshens\.com/
-// @include       /https\:\/\/www\.youtube\.com/
+// @include       /https?\:\/\/www\.youtube\.com/
 // @include       /https?\:\/\/www\.24meinv\.me/
+// @include       /https?\:\/\/www\.aitaotu\.com/
+// @include       /https?\:\/\/www\.mzitu\.com/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.5.2/dom-to-image.min.js
@@ -29,24 +31,6 @@
 
 var blobCache = {};
 var blobUrlCache = {};
-
-
-
-
-Function.prototype.method = function (name, func) {
-    this.prototype[name] = func;
-    return this;
-};
-
-Object.prototype.method = function (name, func) {
-    this.prototype[name] = func;
-    return this;
-};
-
-Object.method('isArray', function () {
-    return Object.prototype.toString.apply(this) === '[object Array]';
-});
-
 
 var Alpha_Script = {
     obtainHtml: function (options) {
@@ -72,6 +56,9 @@ var Alpha_Script = {
         var r = dest.match(reg);
         if (r != null) return decodeURI(r[2]);
         return null;
+    },
+    isArray: function (value) {
+        return Object.prototype.toString.apply(value) === '[object Array]';
     }
 };
 
@@ -79,9 +66,9 @@ var Alpha_Script = {
     'use strict';
 
     priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
-    priorityLog('已实现：蕾丝猫(http://www.lesmao.com)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)，宅男女神(http://www.nvshens.com)，24美女图片(24meinv.me)');
+    priorityLog('已实现：蕾丝猫(http://www.lesmao.com)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)，宅男女神(http://www.nvshens.com)，24美女图片(http://www.24meinv.me)，爱套图(http://www.aitaotu.com)，妹子图(http://www.mzitu.com)');
     priorityLog('已实现：绕过YouTube的年龄限制');
-    priorityLog('未实现：aitaotu.com;mzitu.com');
+    priorityLog('未实现：');
 
     var currentPageUrl = window.location.href;
     var currentHostname = window.location.hostname;
@@ -89,8 +76,6 @@ var Alpha_Script = {
     var currentProtocol = window.location.protocol;
     hotkeys();
     var pagesCommonObj = function () {
-        var domains = ['www.lesmao.com', 'www.umei.cc', 'www.meitulu.com', 'www.17786.com',
-            'www.nvshens.com', 'm.nvshens.com', 'www.24meinv.me'];
         return {
             'meet': function (options) {
                 options = options || {};
@@ -103,16 +88,17 @@ var Alpha_Script = {
                 };
                 var matchDomain = false;
                 log(options.domain);
-                if (options.domain.isArray()) {
+                if (Alpha_Script.isArray(options.domain)) {
                     for (var i = 0; i < options.domain.length; i++) {
-                        if (domains.indexOf(options.domain[i]) != -1) {
+                        if (options.domain[i] === currentHostname) {
                             matchDomain = true;
                             break;
                         }
                     }
                 } else {
-                    matchDomain = domains.indexOf(options.domain) != -1 || options.domain === '';
+                    matchDomain = options.domain === currentHostname || options.domain === '';
                 }
+                log('matchDomain:' + matchDomain);
                 if (matchDomain) {
                     options.success();
                 } else {
@@ -214,7 +200,7 @@ var Alpha_Script = {
             startUrl: currentProtocol + '//' + currentHostname + '/',
             success: function () {
                 var match = currentPathname.match(/^\/(\d+)(?:_\d+)?\.html$/im); //http://www.17786.com/7745_1.html
-                if (match !== null) {
+                if (match != null) {
                     var partPreUrl = '';
                     var pageId = match[1];
                     var suffixUrl = '.html';
@@ -228,7 +214,7 @@ var Alpha_Script = {
                     }
                 } else {
                     var match = currentPathname.match(/^\/((?:\w+\/)+)(\d+)(?:_\d+)?\.html$/im);//http://www.17786.com/beautiful/feizhuliutupian/44569.html
-                    if (match !== null) {
+                    if (match != null) {
                         var partPreUrl = match[1];
                         var pageId = match[2];
                         var suffixUrl = '.html';
@@ -313,6 +299,70 @@ var Alpha_Script = {
                 }
             }
         });
+
+    commonObj.meet(
+        {
+            domain: 'www.aitaotu.com',
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            limitPage: 1,
+            removeAd: function () {
+                var id = setInterval(function () {
+                    $('#lgVshow').remove();
+                    $('div.gg1002').remove();
+                }, 100);
+            },
+            success: function () {
+                this.removeAd();
+                var match = currentPathname.match(/\/(.+?\/)(\d+)(?:_\d+)?\.html/m);
+                if (match !== null) {
+                    var partPreUrl = match[1];
+                    var pageId = match[2];
+                    var suffixUrl = '.html';
+                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
+                    var pageStr = $('div.photo > div.pages > ul > li:last-child > a').attr('href');
+                    log('pageStr:' + pageStr);
+                    if (pageStr) {
+                        var myregexp = /\/\w+\/(\d+)(?:_(\d+))?\.html/m;
+                        var match = myregexp.exec(pageStr);
+                        if (match != null) {
+                            this.limitPage = parseInt(match[2]);
+                            log('limitPage:' + this.limitPage);
+                            currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 1, this.limitPage, suffixUrl, currentHostname);
+                        } else {
+
+                        }
+                    } else {
+
+                    }
+                }
+            }
+        });
+
+    commonObj.meet(
+        {
+            domain: 'www.mzitu.com',
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            limitPage: 1,
+            success: function () {
+                var match = currentPathname.match(/\/(\d+)(?:\/\d+)?/m);
+                if (match !== null) {
+                    var partPreUrl = '';
+                    var pageId = match[1];
+                    var suffixUrl = '';
+                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
+                    var pageStr = $('div.pagenavi >a').last().prev().find('span').text().trim();
+                    log('pageStr:' + pageStr);
+                    if (pageStr) {
+                        this.limitPage = parseInt(pageStr);
+                        log('limitPage:' + this.limitPage);
+                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '/', 1, this.limitPage, suffixUrl, currentHostname);
+                    } else {
+
+                    }
+                }
+            }
+        });
+
     if ('www.youtube.com' === currentHostname) {
         var vId = "";
         var id = setInterval(function () {
@@ -451,6 +501,14 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentH
             },
             'www.24meinv.me': function () {
                 $('div.gtps.fl').hide();
+            },
+            'www.aitaotu.com': function () {
+                $('div.big-pic').hide();
+                $('div.pages').hide();
+            },
+            'www.mzitu.com': function () {
+                $('div.main-image').hide();
+                $('div.pagenavi').hide();
             }
         };
         hideObj[currentHostname]();
@@ -487,6 +545,14 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentH
             },
             'www.24meinv.me': function () {
                 $('div.gtps.fl').show();
+            },
+            'www.aitaotu.com': function () {
+                $('div.big-pic').show();
+                $('div.pages').show();
+            },
+            'www.mzitu.com': function () {
+                $('div.main-image').show();
+                $('div.pagenavi').show();
             }
         };
         showObj[currentHostname]();
@@ -604,6 +670,12 @@ function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) 
 
                                     return;
                                 },
+                                'www.aitaotu.com': function (doc) {
+                                    return $(doc).find('#big-pic > p > a  > img');
+                                },
+                                'www.mzitu.com': function (doc) {
+                                    return $(doc).find('div.main-image > p > a > img');
+                                },
                             };
                             return function (response) {
                                 var html = response.responseText;
@@ -622,7 +694,7 @@ function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) 
                                     breakPageLoop = true;
                                 }
                                 lock = false;
-                            }
+                            };
                         }()
                     });
                 } else {
@@ -691,6 +763,12 @@ function injectAggregationRef(currentHostname) {
         'www.24meinv.me': function () {
             $('div.hd1').after(injectComponent);
             $('#hgg1').remove();
+        },
+        'www.aitaotu.com': function () {
+            $('div.tsmaincont-desc').after(injectComponent);
+        },
+        'www.mzitu.com': function () {
+            $('div.main-meta').after(injectComponent);
         }
     };
     injectAggregateObj[currentHostname]();
