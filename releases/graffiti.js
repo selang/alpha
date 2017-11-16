@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.10
+// @version      2.11
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lsmpic\.com/
@@ -14,6 +14,9 @@
 // @include       /https?\:\/\/www\.24meinv\.me/
 // @include       /https?\:\/\/www\.aitaotu\.com/
 // @include       /https?\:\/\/www\.mzitu\.com/
+// @include       /https?\:\/\/www\.beautylegmm\.com/
+// @include       /https?\:\/\/www\.rosiyy\.com/
+// @include       /https?\:\/\/www\.meinv58\.com/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.5.2/dom-to-image.min.js
@@ -69,7 +72,7 @@ var Alpha_Script = {
 
     priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
     priorityLog('已实现：蕾丝猫(http://www.lsmpic.com)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)，宅男女神(http://www.nvshens.com)，24美女图片(http://www.24meinv.me)，爱套图(http://www.aitaotu.com)，妹子图(http://www.mzitu.com)');
-    priorityLog('已实现：绕过YouTube的年龄限制');
+    priorityLog('Beautyleg腿模写真(http://www.beautylegmm.com)，美女58(http://www.meinv58.com)');
     priorityLog('未实现：');
 
     var currentPageUrl = window.location.href;
@@ -365,6 +368,56 @@ var Alpha_Script = {
             }
         });
 
+    commonObj.meet(
+        {
+            domain: 'www.beautylegmm.com',
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            limitPage: 1,
+            success: function () {
+                var match = currentPathname.match(/^\/(\w+\/beautyleg-\d+\.html)/im);
+                if (match !== null) {
+                    var partPreUrl = '';
+                    var pageId = match[1];
+                    var suffixUrl = '';
+                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
+                    var pageStr = $('#contents_post > div.post > div > a:not(.next)').last().text().trim();
+                    log('pageStr:' + pageStr);
+                    if (pageStr) {
+                        this.limitPage = parseInt(pageStr);
+                        log('limitPage:' + this.limitPage);
+                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '?page=', 1, this.limitPage, suffixUrl, currentHostname);
+                    } else {
+
+                    }
+                }
+            }
+        });
+
+    commonObj.meet(
+        {
+            domain: 'www.meinv58.com',
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            limitPage: 1,
+            success: function () {
+                var match = currentPathname.match(/^\/(\w+\/\d+)/im);
+                if (match !== null) {
+                    var partPreUrl = '';
+                    var pageId = match[1];
+                    var suffixUrl = '';
+                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
+                    var pageStr = $('div.link_pages > a:last-child').last().prev().text().trim();
+                    log('pageStr:' + pageStr);
+                    if (pageStr) {
+                        this.limitPage = parseInt(pageStr);
+                        log('limitPage:' + this.limitPage);
+                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '/', 1, this.limitPage, suffixUrl, currentHostname);
+                    } else {
+
+                    }
+                }
+            }
+        });
+
     if ('www.youtube.com' === currentHostname) {
         var vId = "";
         var id = setInterval(function () {
@@ -511,6 +564,14 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentH
             'www.mzitu.com': function () {
                 $('div.main-image').hide();
                 $('div.pagenavi').hide();
+            },
+            'www.beautylegmm.com': function () {
+                $('div.post').hide();
+                $('div.archives_page_bar').hide();
+            },
+            'www.meinv58.com': function () {
+                $('div.main-body').hide();
+                $('div.link_pages').hide();
             }
         };
         hideObj[currentHostname]();
@@ -555,6 +616,14 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentH
             'www.mzitu.com': function () {
                 $('div.main-image').show();
                 $('div.pagenavi').show();
+            },
+            'www.beautylegmm.com': function () {
+                $('div.post').show();
+                $('div.archives_page_bar').show();
+            },
+            'www.meinv58.com': function () {
+                $('div.main-body').show();
+                $('div.link_pages').show();
             }
         };
         showObj[currentHostname]();
@@ -678,6 +747,12 @@ function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) 
                                 'www.mzitu.com': function (doc) {
                                     return $(doc).find('div.main-image > p > a > img');
                                 },
+                                'www.beautylegmm.com': function (doc) {
+                                    return $(doc).find('#contents_post > div.post > a  > img');
+                                },
+                                'www.meinv58.com': function (doc) {
+                                    return $(doc).find('div.main-body p img');
+                                },
                             };
                             return function (response) {
                                 var html = response.responseText;
@@ -688,7 +763,7 @@ function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) 
                                 var imgObj;
 
                                 imgObj = parseObj[currentHostname](doc);
-
+                                
                                 var imgContainerCssSelector = '#c_' + _i;
                                 log(imgContainerCssSelector);
                                 var status = query($(imgContainerCssSelector), $(imgObj));
@@ -771,6 +846,20 @@ function injectAggregationRef(currentHostname) {
         },
         'www.mzitu.com': function () {
             $('div.main-meta').after(injectComponent);
+        },
+        'www.beautylegmm.com': function () {
+            $('iframe').remove();//移除广告等无必要元素
+            setInterval(function () {
+                $('iframe').remove();//移除广告等无必要元素
+            },1000);
+            $('div.post_title').after(injectComponent);
+        },
+        'www.meinv58.com': function () {
+            $('iframe').remove();//移除广告等无必要元素
+            setInterval(function () {
+                $('iframe').remove();//移除广告等无必要元素
+            },1000);
+            $(' div.main-header > div').after(injectComponent);
         }
     };
     injectAggregateObj[currentHostname]();
