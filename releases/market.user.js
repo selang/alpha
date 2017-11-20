@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.8
+// @version      0.0.9
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
@@ -11,6 +11,7 @@
 // @grant        unsafeWindow
 // @run-at       document-end
 // ==/UserScript==
+
 var igxecsgo_Name = 'IG-XE-CS-GO';
 var $ = jQuery;
 var buyer_name = $('#js-show-user-pane > a.s.vam.omit.dib').text();
@@ -59,7 +60,7 @@ function igxecsgo_ChechItemPriceRatio() {//列表页方法
         var match = window.location.href.match(/#([^#]+)$/im);
         if (match != null) {
             var suffixLogic = match[1];
-            var salePriceStr = getParam(suffixLogic, 'salePrice');
+            var salePriceStr = Alpha_Script.getParam(suffixLogic, 'salePrice');
             if (salePriceStr != null) {
                 var salePrice = parseFloat(salePriceStr);
                 if (miniSalePrice >= salePrice) {
@@ -90,7 +91,7 @@ function igxecsgo_ChechItemPriceRatio() {//列表页方法
 
     {
         $('.mod-hotEquipment').each(function (index) {
-            $(this).find('div.mod-hotEquipment-ft > a.com-btn.com-green.add-cart.category').before('<div style="display: flex;margin-left: 134px;"><input type="button" onclick="alipay();" class="payWays com-btn com-red" value="打开"/></div> ');
+            $(this).find('div.mod-hotEquipment-hd > a:nth-child(1)').after('<div style="float: right"><input type="button" onclick="alipay();" class="payWays com-btn com-red" value="打开"/></div> ');
         });
     }
 }
@@ -114,13 +115,6 @@ unsafeWindow.alipay = function () {
     }, 300);
 }
 
-//获取参数
-function getParam(dest, name) {
-    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-    var r = dest.match(reg);
-    if (r != null) return decodeURI(r[2]);
-    return null;
-}
 
 function igxecsgo_ChechItemPriceRatio2() {//详情页方法
     var igxecsgo_ItemPrice = Number($('div.mod-equipmentDetail-bd > div.s2').last().find('b').text().replace('￥', '').trim());//市场价
@@ -157,6 +151,10 @@ function igxecsgo_ChechItemPriceRatio2() {//详情页方法
             '&search_is_stattrak=0&search_sort_key=2&search_sort_rule=0' +
             suffixLogic +
             '" target="_blank" class="com-btn com-red" style="overflow: visible;margin-bottom: 20px;" rel="nofollow">查看最低价</a>');
+    }
+
+    {
+
     }
 
 }
@@ -281,39 +279,10 @@ function igxecsgo_SetOn3() {//上架
     }
 })();
 
-//解析头
-function parseHeaders(headStr) {
-    var o = {};
-    var myregexp = /^([^:]+):(.*)$/img;
-    var match = /^([^:]+):(.*)$/img.exec(headStr);
-    while (match != null) {
-        o[match[1].trim()] = match[2].trim();
-        match = myregexp.exec(headStr);
-    }
-    return o;
-}
-
-//获取网页
-function obtainHtml(url, sucess) {
-    var headers = parseHeaders("Accept:image/webp,image/*,*/*;q=0.8\n" +
-        "Accept-Encoding:gzip, deflate, sdch\n" +
-        "Accept-Language:zh-CN,zh;q=0.8\n" +
-        //"Referer:" + window.location.href + "\n" +
-        "User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
-    );
-    GM_xmlhttpRequest({
-        method: 'GET',
-        headers: headers,
-        url: url,
-        onload: function (response) {
-            sucess(response.responseText);
-        }
-    });
-}
 
 //日志
 function log(c) {
-    if (true) {
+    if (false) {
         console.log(c);
     }
 }
@@ -326,4 +295,31 @@ function err(c) {
 
 function priorityLog(c) {
     console.log(c);
+}
+
+var Alpha_Script = {
+    obtainHtml: function (options) {
+        options = options || {};
+        if (!options.url || !options.method) {
+            throw new Error("参数不合法");
+        }
+        GM_xmlhttpRequest(options);
+    },
+    parseHeaders: function (headStr) {
+        var o = {};
+        var myregexp = /^([^:]+):(.*)$/img;
+        var match = /^([^:]+):(.*)$/img.exec(headStr);
+        while (match != null) {
+            o[match[1].trim()] = match[2].trim();
+            match = myregexp.exec(headStr);
+        }
+        return o;
+    },
+    //获取参数
+    getParam: function (dest, name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = dest.match(reg);
+        if (r != null) return decodeURI(r[2]);
+        return null;
+    }
 }
