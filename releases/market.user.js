@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.9
+// @version      0.0.10
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
@@ -91,7 +91,7 @@ function igxecsgo_ChechItemPriceRatio() {//列表页方法
 
     {
         $('.mod-hotEquipment').each(function (index) {
-            $(this).find('div.mod-hotEquipment-hd > a:nth-child(1)').after('<div style="float: right"><input type="button" onclick="alipay();" class="payWays com-btn com-red" value="打开"/></div> ');
+            $(this).find('div.mod-hotEquipment-ft > a.com-btn.com-green.add-cart.category').before('<div style="display: flex;margin-left: 134px;"><input type="button" onclick="alipay();" class="payWays com-btn com-red" value="打开"/></div> ');
         });
     }
 }
