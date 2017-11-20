@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.12
+// @version      2.13
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lsmpic\.com/
@@ -278,7 +278,7 @@ var Alpha_Script = {
             },
             success: function () {
                 this.removeAd();
-                var match = currentPathname.match(/^\/(hd\d\/\w+?)(?:_\d+)?\.html$/im);
+                var match = currentPathname.match(/^\/(\w+\/\w+?)(?:_\d+)?\.html$/im);
                 if (match !== null) {
                     var partPreUrl = match[1];
                     var pageId = '';
@@ -286,7 +286,7 @@ var Alpha_Script = {
                     log(this.startUrl + partPreUrl + pageId + suffixUrl);
                     var pageStr = $('div.page.ps > a:last-child').attr('href');
                     if (pageStr) {
-                        var myregexp = /^\/(hd\d\/\w+?)(?:_(\d+))?\.html$/im;
+                        var myregexp = /^\/(\w+\/\w+?)(?:_(\d+))?\.html$/im;
                         var match = myregexp.exec(pageStr);
                         if (match == null) {
                             match = myregexp.exec(currentPathname);
@@ -732,7 +732,7 @@ function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) 
                                     var imgObj = $(doc).find('div.gtps.fl img');
                                     $(imgObj).each(function (index) {
                                         // log(index + ": " + $(this).prop('outerHTML'));
-                                        var imgSrc = $(this).attr('src').replace(/http:\/\/pic\.diercun\.com(.*?\/)m([\w.]+)$/img, "http://img.diercun.com$1$2");
+                                        var imgSrc = $(this).attr('src').replace(/http:\/\/\w+\.diercun\.com(.*?\/)m([\w.]+)/img, "http://img.diercun.com$1$2");
                                         $(this).attr('src', imgSrc);
                                     });
                                     return imgObj;
