@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.11
+// @version      2.12
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lsmpic\.com/
 // @include       /https?\:\/\/www\.umei\.cc/
-// @include       /https?\:\/\log/www\.meitulu\.com/
+// @include       /https?\:\/\/www\.meitulu\.com/
 // @include       /https?\:\/\/www\.17786\.com/
 // @include       /https?\:\/\/www\.nvshens\.com/
 // @include       /https?\:\/\/m\.nvshens\.com/
