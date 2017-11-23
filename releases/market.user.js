@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.11
+// @version      0.0.12
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
@@ -243,7 +243,7 @@ function igxecsgo_SetOrder() {//订单页方法
                             $('#pay_order').click();
                         }
                     }
-                    clearInterval(_id);
+                    //clearInterval(_id);
                 }
             } else {
 
