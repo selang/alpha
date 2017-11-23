@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.13
+// @version      0.0.14
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
@@ -250,7 +250,7 @@ function igxecsgo_SetOrder() {//订单页方法
     document.getElementById('pay-pwd').value = payPWD;
     layer.msg('已自动填写购买者名称', {offset: ['24px', '24px'], shift: 4});
     {
-        var _id = setInterval(function () {
+        var _id1 = setInterval(function () {
             var payWays = sessionStorage.getItem('payWays');
             if (payWays === 'alipay') {
                 var radio = $('ul > li:nth-child(1) > label > input[type="radio"]');
@@ -261,7 +261,7 @@ function igxecsgo_SetOrder() {//订单页方法
                             $('#pay_order').click();
                         }
                     }
-                    clearInterval(_id);
+                    clearInterval(_id1);
                 }
             } else {
 
@@ -270,13 +270,14 @@ function igxecsgo_SetOrder() {//订单页方法
     }
 
     {
-        var _id = setInterval(function () {
+        var _id2 = setInterval(function () {
             var autoSure = sessionStorage.getItem('autoSure');
             if (autoSure === "true") {
                 {
                     if (!$('#pay_order').is(':disabled')) {
                         $('#pay_order').click();
-                        clearInterval(_id);
+                        clearInterval(_id2);
+
                     }
                 }
             } else {
@@ -286,13 +287,14 @@ function igxecsgo_SetOrder() {//订单页方法
     }
 
     {
-        var _id = setInterval(function () {
+        var _id3 = setInterval(function () {
             var autoSure = sessionStorage.getItem('autoSure');
             if (autoSure === "true") {
                 {
                     if ($('div.layui-layer-btn > a.layui-layer-btn0').is(':visible')) {
                         $('div.layui-layer-btn > a.layui-layer-btn0').click();
-                        clearInterval(_id);
+                        clearInterval(_id3);
+
                     }
                 }
 
