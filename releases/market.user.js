@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.10
+// @version      0.0.11
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
@@ -19,6 +19,33 @@ var putwayPWD = '你的上架密码';
 var payPWD = '你的支付密码';
 if (buyer_name) {
     sessionStorage.setItem('buyer_name', buyer_name);
+}
+
+var Alpha_Script = {
+    obtainHtml: function (options) {
+        options = options || {};
+        if (!options.url || !options.method) {
+            throw new Error("参数不合法");
+        }
+        GM_xmlhttpRequest(options);
+    },
+    parseHeaders: function (headStr) {
+        var o = {};
+        var myregexp = /^([^:]+):(.*)$/img;
+        var match = /^([^:]+):(.*)$/img.exec(headStr);
+        while (match != null) {
+            o[match[1].trim()] = match[2].trim();
+            match = myregexp.exec(headStr);
+        }
+        return o;
+    },
+    //获取参数
+    getParam: function (dest, name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = dest.match(reg);
+        if (r != null) return decodeURI(r[2]);
+        return null;
+    }
 }
 
 function igxecsgo_ChechItemPriceRatio() {//列表页方法
@@ -297,29 +324,3 @@ function priorityLog(c) {
     console.log(c);
 }
 
-var Alpha_Script = {
-    obtainHtml: function (options) {
-        options = options || {};
-        if (!options.url || !options.method) {
-            throw new Error("参数不合法");
-        }
-        GM_xmlhttpRequest(options);
-    },
-    parseHeaders: function (headStr) {
-        var o = {};
-        var myregexp = /^([^:]+):(.*)$/img;
-        var match = /^([^:]+):(.*)$/img.exec(headStr);
-        while (match != null) {
-            o[match[1].trim()] = match[2].trim();
-            match = myregexp.exec(headStr);
-        }
-        return o;
-    },
-    //获取参数
-    getParam: function (dest, name) {
-        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-        var r = dest.match(reg);
-        if (r != null) return decodeURI(r[2]);
-        return null;
-    }
-}
