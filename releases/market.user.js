@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.12
+// @version      0.0.13
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
@@ -131,6 +131,16 @@ unsafeWindow.alipay = function () {
     }
 }
 
+unsafeWindow.autoSure = function () {
+    {
+        if (sessionStorage.getItem('autoSure') === "true") {
+            sessionStorage.setItem('autoSure', "false");//自动确定
+        } else {
+            sessionStorage.setItem('autoSure', "true");//自动确定
+        }
+    }
+}
+
 {
     var _id = setInterval(function () {
         var payWays = sessionStorage.getItem('payWays');
@@ -139,6 +149,14 @@ unsafeWindow.alipay = function () {
         } else {
             $('.payWays').val('打开');
         }
+
+        var autoSure = sessionStorage.getItem('autoSure');
+        if (autoSure === "true") {
+            $('.autoSure').val('关闭');
+        } else {
+            $('.autoSure').val('打开');
+        }
+
     }, 300);
 }
 
@@ -243,14 +261,50 @@ function igxecsgo_SetOrder() {//订单页方法
                             $('#pay_order').click();
                         }
                     }
-                    //clearInterval(_id);
+                    clearInterval(_id);
                 }
             } else {
 
             }
         }, 300);
     }
+
+    {
+        var _id = setInterval(function () {
+            var autoSure = sessionStorage.getItem('autoSure');
+            if (autoSure === "true") {
+                {
+                    if (!$('#pay_order').is(':disabled')) {
+                        $('#pay_order').click();
+                        clearInterval(_id);
+                    }
+                }
+            } else {
+
+            }
+        }, 300);
+    }
+
+    {
+        var _id = setInterval(function () {
+            var autoSure = sessionStorage.getItem('autoSure');
+            if (autoSure === "true") {
+                {
+                    if ($('div.layui-layer-btn > a.layui-layer-btn0').is(':visible')) {
+                        $('div.layui-layer-btn > a.layui-layer-btn0').click();
+                        clearInterval(_id);
+                    }
+                }
+
+            } else {
+
+            }
+        }, 300);
+    }
+
+    $('#pay_order').after('<input type="button" onclick="autoSure();" class="autoSure com-btn com-red" value="打开"/>');
 }
+
 
 function igxecsgo_SetOn() {//上架
     setInterval(function () {
