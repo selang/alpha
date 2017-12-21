@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.13
+// @version      2.14
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
-// @include       /https?\:\/\/www\.lsmpic\.com/
+// @include       /https?\:\/\/www\.lesmao\.cc/
 // @include       /https?\:\/\/www\.umei\.cc/
 // @include       /https?\:\/\/www\.meitulu\.com/
 // @include       /https?\:\/\/www\.17786\.com/
@@ -71,7 +71,7 @@ var Alpha_Script = {
     'use strict';
 
     priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
-    priorityLog('已实现：蕾丝猫(http://www.lsmpic.com)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)，宅男女神(http://www.nvshens.com)，24美女图片(http://www.24meinv.me)，爱套图(http://www.aitaotu.com)，妹子图(http://www.mzitu.com)');
+    priorityLog('已实现：蕾丝猫(http://www.lesmao.cc)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)，宅男女神(http://www.nvshens.com)，24美女图片(http://www.24meinv.me)，爱套图(http://www.aitaotu.com)，妹子图(http://www.mzitu.com)');
     priorityLog('Beautyleg腿模写真(http://www.beautylegmm.com)，美女58(http://www.meinv58.com)');
     priorityLog('未实现：');
 
@@ -116,7 +116,7 @@ var Alpha_Script = {
     var commonObj = pagesCommonObj();
     commonObj.meet(
         {
-            domain: 'www.lsmpic.com',
+            domain: 'www.lesmao.cc',
             startUrl: currentProtocol + '//' + currentHostname + '/',
             limitPage: 30,
             success: function () {
@@ -480,7 +480,8 @@ function packageAndDownload() {
                         url: imgSrc,
                         method: 'GET',
                         headers: {
-                            "Accept": "application/*"
+                            "Accept": "application/*",
+                            "Referer":window.location.origin
                         },
                         responseType: 'blob',
                         onload: function (response) {
@@ -529,7 +530,7 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentH
         $('#c_container').show();
 
         var hideObj = {
-            'www.lsmpic.com': function () {
+            'www.lesmao.cc': function () {
                 $('#thread-pic').hide();
                 $('#thread-page').hide();
             },
@@ -580,7 +581,7 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentH
         $('#c_container').hide();
 
         var showObj = {
-            'www.lsmpic.com': function () {
+            'www.lesmao.cc': function () {
                 $('#thread-pic').show();
                 $('#thread-page').show();
             },
@@ -698,7 +699,7 @@ function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) 
                         onload: function () {
                             var _i = i;
                             var parseObj = {
-                                'www.lsmpic.com': function (doc) {
+                                'www.lesmao.cc': function (doc) {
                                     return $(doc).find('ul > li > img');
                                 },
                                 'www.umei.cc': function (doc) {
@@ -763,7 +764,7 @@ function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) 
                                 var imgObj;
 
                                 imgObj = parseObj[currentHostname](doc);
-                                
+
                                 var imgContainerCssSelector = '#c_' + _i;
                                 log(imgContainerCssSelector);
                                 var status = query($(imgContainerCssSelector), $(imgObj));
@@ -805,7 +806,7 @@ function injectAggregationRef(currentHostname) {
         '<span>&nbsp;&nbsp;</span>' +
         '<input id="injectaggregatBtn" type="button" value="聚合显示"/>';
     var injectAggregateObj = {
-        'www.lsmpic.com': function () {
+        'www.lesmao.cc': function () {
             $('.thread-tr').after(injectComponent);
             $('#vt').append(injectComponent);
         },
