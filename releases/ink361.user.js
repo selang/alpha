@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ink361集成组件
 // @namespace    https://www.44bz.com/
-// @version      0.4
+// @version      0.5
 // @description  为ink361镜像服务的组件!
 // @author       David
 // @include      /https?:\/\/ink361\.com/
@@ -15,7 +15,7 @@
     'use strict';
     if(typeof unsafeWindow.THRB == "undefined") {
         var script =  document.createElement("script");
-        script.src="http://119.23.210.38:9090/js/loadMore.js";
+        script.src="https://ink361.c-no.net:9090/js/loadMore.js";
         script.type="text/javascript";
         document.body.appendChild(script);
     }
