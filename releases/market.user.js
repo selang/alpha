@@ -15,8 +15,8 @@
 var igxecsgo_Name = 'IG-XE-CS-GO';
 var $ = jQuery;
 var buyer_name = $('#js-show-user-pane > a.s.vam.omit.dib').text();
-var putwayPWD = '你的上架密码';
-var payPWD = '你的支付密码';
+var putwayPWD = '';
+var payPWD = '';
 if (buyer_name) {
     sessionStorage.setItem('buyer_name', buyer_name);
 }
@@ -342,7 +342,9 @@ function igxecsgo_SetOn3() {//上架
 }
 
 (function () {
-    if (location.pathname.indexOf('/category') > -1 || location.pathname.indexOf('/productlist') > -1 || location.pathname.indexOf('/shop') > -1 || location.pathname.indexOf('/search') > -1) {
+    if (location.pathname.indexOf('/dmall/seller/product_detail_v2/') > -1) {
+        obtianAskBuy();
+    } else if (location.pathname.indexOf('/category') > -1 || location.pathname.indexOf('/productlist') > -1 || location.pathname.indexOf('/shop') > -1 || location.pathname.indexOf('/search') > -1) {
         igxecsgo_ChechItemPriceRatio();
     }
     else if (location.pathname.indexOf('/product') > -1 && location.pathname.indexOf('/productlist') < 0) {
@@ -361,6 +363,46 @@ function igxecsgo_SetOn3() {//上架
         layer.msg(igxecsgo_Name + '已载入', {offset: ['24px', '24px'], shift: 4});
     }
 })();
+
+function onsaleAsc() {
+    var $tab = $('#sale_type_ul > li:nth-child(1)');
+    $("#sale_sale_type").val($tab.attr("data-sale-type"));
+    $(".sale_type_span").text($tab.text());
+    $('#price').toggleClass('asc');
+    $('#sale_sort').val(3);
+    unsafeWindow.get_sale_product();
+}
+
+function obtianAskBuy() {
+    var pTypeIdRegexp = /\/dmall\/seller\/product_detail_v2\/(\d+)/im;
+    var match = pTypeIdRegexp.exec(window.location.pathname);
+    if (match != null) {
+        var pTypeId = match[1];
+        var url = "https://www.igxe.cn/purchase/get_product_purchases?product_id=" + pTypeId + "&page_no=1";
+        Alpha_Script.obtainHtml({
+            url: url,
+            method: 'GET',
+            headers: {
+                "Accept": "Accept:application/json, text/javascript, */*; q=0.01\n" +
+                "Accept-Encoding:gzip, deflate, br\n" +
+                "Accept-Language:zh-CN,zh;q=0.9\n" +
+                "Cache-Control:no-cache\n" +
+                "DNT:1\n" +
+                "User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36\n" +
+                "X-Requested-With:XMLHttpRequest"
+            },
+            responseType: 'json',
+            onload: function (response) {
+                onsaleAsc();
+                var json = JSON.parse(response.responseText);
+                $('#center > div > div > dl > dd:last-child').append(json.data_html);
+            }
+        });
+    } else {
+
+    }
+
+}
 
 
 //日志
