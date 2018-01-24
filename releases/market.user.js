@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.14
+// @version      0.0.15
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
@@ -253,7 +253,7 @@ function igxecsgo_SetOrder() {//订单页方法
         var _id1 = setInterval(function () {
             var payWays = sessionStorage.getItem('payWays');
             if (payWays === 'alipay') {
-                var radio = $('ul > li:nth-child(1) > label > input[type="radio"]');
+                var radio = $('ul > li:nth-child(3) > label > input[type="radio"]');
                 if (radio.length == 1) {
                     $(radio).attr("checked", 'checked');
                     {
