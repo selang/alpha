@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ink361集成组件
 // @namespace    https://www.44bz.com/
-// @version      0.5
+// @version      0.6
 // @description  为ink361镜像服务的组件!
 // @author       David
 // @include      /https?:\/\/ink361\.com/
@@ -39,7 +39,7 @@
             $.each($(photoMetas), function (index, value) {
 
                 var parent = $(value).parent();
-                var dataSrc = parent.find("div.img").attr('data-src');
+                var dataSrc = $(value).parent().parent().attr('data-standard');
                 {//移除视频
                     var videoE = $(parent).find("span.icon-video");
                     if (videoE.length > 0) {
@@ -56,12 +56,12 @@
                                     var imgName = "";
                                     if (match != null) {
                                         imgName = match[1];
-                                        dataSrc = dataSrc.replace(regExp, ".com/e35/$1");
-                                        log(dataSrc);
-                                        $(value).find('a.user').after("<a download=\"" + imgName + "\" class=\"user _download\" style=\"float: right;\" href=\"" + dataSrc + "\">下载</a>");
+                                    //     dataSrc = dataSrc.replace(regExp, ".com/e35/$1");
+                                    //     log(dataSrc);
                                     } else {
-
                                     }
+
+                                    $(value).find('a.user').after("<a download=\"" + imgName + "\" class=\"user _download\" style=\"float: right;\" href=\"" + dataSrc + "\">下载</a>");
                                 }
 
                             }
