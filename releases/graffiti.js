@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.14
+// @version      2.15
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
-// @include       /https?\:\/\/www\.lesmao\.cc/
+// @include       /https?\:\/\/www\.lesmao\.me/
 // @include       /https?\:\/\/www\.umei\.cc/
 // @include       /https?\:\/\/www\.meitulu\.com/
 // @include       /https?\:\/\/www\.17786\.com/
@@ -17,6 +17,12 @@
 // @include       /https?\:\/\/www\.beautylegmm\.com/
 // @include       /https?\:\/\/www\.rosiyy\.com/
 // @include       /https?\:\/\/www\.meinv58\.com/
+// @include       /https?\:\/\/www\.xgtaotu\.com/
+// @include       /https?\:\/\/www\.xiuaa\.com/
+// @include       /https?\:\/\/www\.youzi4\.cc/
+// @include       /https?\:\/\/www\.xiumeim\.com/
+// @include       /https?\:\/\/www\.win4000\.com/
+// @include       /https?\:\/\/www\.7kmn\.com/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.5.2/dom-to-image.min.js
@@ -71,9 +77,11 @@ var Alpha_Script = {
     'use strict';
 
     priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
-    priorityLog('已实现：蕾丝猫(http://www.lesmao.cc)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)，宅男女神(http://www.nvshens.com)，24美女图片(http://www.24meinv.me)，爱套图(http://www.aitaotu.com)，妹子图(http://www.mzitu.com)');
+    priorityLog('已实现：蕾丝猫(http://www.lesmao.me)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)，宅男女神(http://www.nvshens.com)，24美女图片(http://www.24meinv.me)，爱套图(http://www.aitaotu.com)，妹子图(http://www.mzitu.com)');
     priorityLog('Beautyleg腿模写真(http://www.beautylegmm.com)，美女58(http://www.meinv58.com)');
-    priorityLog('未实现：');
+    priorityLog('性感套图(http://www.xgtaotu.com/)');
+    priorityLog('未实现：美拍写真(http://www.mpxz.net/),MMM11(http://www.mmm11.cc/),优姿美女（http://www.youzi4.cc/)\n' +
+        '\t秀美眉(http://www.xiumeim.com/)，美桌(http://www.win4000.com/)');
 
     var currentPageUrl = window.location.href;
     var currentHostname = window.location.hostname;
@@ -116,7 +124,7 @@ var Alpha_Script = {
     var commonObj = pagesCommonObj();
     commonObj.meet(
         {
-            domain: 'www.lesmao.cc',
+            domain: 'www.lesmao.me',
             startUrl: currentProtocol + '//' + currentHostname + '/',
             limitPage: 30,
             success: function () {
@@ -418,6 +426,31 @@ var Alpha_Script = {
             }
         });
 
+    commonObj.meet(
+        {
+            domain: 'www.xgtaotu.com',
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            limitPage: 1,
+            success: function () {
+                var match = currentPathname.match(/^\/(rentihtml\/zhaopian\/\d+\/\d+)/im);
+                if (match !== null) {
+                    var partPreUrl = '';
+                    var pageId = match[1];
+                    var suffixUrl = '.html';
+                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
+                    var pageStr = $('p b a').eq(-2).text().replace(/[\]\[]/img, "").trim();
+                    log('pageStr:' + pageStr);
+                    if (pageStr) {
+                        this.limitPage = parseInt(pageStr);
+                        log('limitPage:' + this.limitPage);
+                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 1, this.limitPage, suffixUrl, currentHostname);
+                    } else {
+
+                    }
+                }
+            }
+        });
+
     if ('www.youtube.com' === currentHostname) {
         var vId = "";
         var id = setInterval(function () {
@@ -443,7 +476,7 @@ function switchVId(vId) {
     if (text && text.indexOf('内容警告') != -1) {
         log('内容警告::');
         $('#player-api').removeClass('off-screen-target').html('<iframe src="https://www.youtube.com/embed/' +
-        vId +
+            vId +
             '" width="100%" height="100%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>');
         return true;
     }
@@ -481,7 +514,7 @@ function packageAndDownload() {
                         method: 'GET',
                         headers: {
                             "Accept": "application/*",
-                            "Referer":window.location.origin
+                            "Referer": window.location.origin
                         },
                         responseType: 'blob',
                         onload: function (response) {
@@ -530,7 +563,7 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentH
         $('#c_container').show();
 
         var hideObj = {
-            'www.lesmao.cc': function () {
+            'www.lesmao.me': function () {
                 $('#thread-pic').hide();
                 $('#thread-page').hide();
             },
@@ -573,6 +606,10 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentH
             'www.meinv58.com': function () {
                 $('div.main-body').hide();
                 $('div.link_pages').hide();
+            },
+            'www.xgtaotu.com': function () {
+                $('body > div.pic').hide();
+                $('p b a').parent().parent().hide();
             }
         };
         hideObj[currentHostname]();
@@ -581,7 +618,7 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentH
         $('#c_container').hide();
 
         var showObj = {
-            'www.lesmao.cc': function () {
+            'www.lesmao.me': function () {
                 $('#thread-pic').show();
                 $('#thread-page').show();
             },
@@ -625,6 +662,10 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentH
             'www.meinv58.com': function () {
                 $('div.main-body').show();
                 $('div.link_pages').show();
+            },
+            'www.xgtaotu.com': function () {
+                $('body > div.pic').show();
+                $('p b a').parent().parent().show();
             }
         };
         showObj[currentHostname]();
@@ -699,7 +740,7 @@ function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) 
                         onload: function () {
                             var _i = i;
                             var parseObj = {
-                                'www.lesmao.cc': function (doc) {
+                                'www.lesmao.me': function (doc) {
                                     return $(doc).find('ul > li > img');
                                 },
                                 'www.umei.cc': function (doc) {
@@ -754,6 +795,9 @@ function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) 
                                 'www.meinv58.com': function (doc) {
                                     return $(doc).find('div.main-body p img');
                                 },
+                                'www.xgtaotu.com': function (doc) {
+                                    return $(doc).find('p a > img');
+                                },
                             };
                             return function (response) {
                                 var html = response.responseText;
@@ -764,7 +808,7 @@ function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) 
                                 var imgObj;
 
                                 imgObj = parseObj[currentHostname](doc);
-
+                                log(imgObj);
                                 var imgContainerCssSelector = '#c_' + _i;
                                 log(imgContainerCssSelector);
                                 var status = query($(imgContainerCssSelector), $(imgObj));
@@ -791,7 +835,7 @@ function query(objContainer, jqObj) {
         if (imgSrc.endsWith('/k/1178/')) {
             return 'end page';
         } else {
-            $(this)[0].style = "width: 100%;height: 100%";
+            // $(this)[0].style = "width: 100%;height: 100%";
             $(this).attr('label', 'sl');
             objContainer.append('<div>' + $(this).prop('outerHTML') + '</div>');
         }
@@ -806,7 +850,7 @@ function injectAggregationRef(currentHostname) {
         '<span>&nbsp;&nbsp;</span>' +
         '<input id="injectaggregatBtn" type="button" value="聚合显示"/>';
     var injectAggregateObj = {
-        'www.lesmao.cc': function () {
+        'www.lesmao.me': function () {
             $('.thread-tr').after(injectComponent);
             $('#vt').append(injectComponent);
         },
@@ -852,15 +896,20 @@ function injectAggregationRef(currentHostname) {
             $('iframe').remove();//移除广告等无必要元素
             setInterval(function () {
                 $('iframe').remove();//移除广告等无必要元素
-            },1000);
+            }, 1000);
             $('div.post_title').after(injectComponent);
         },
         'www.meinv58.com': function () {
             $('iframe').remove();//移除广告等无必要元素
             setInterval(function () {
                 $('iframe').remove();//移除广告等无必要元素
-            },1000);
+            }, 1000);
             $(' div.main-header > div').after(injectComponent);
+        },
+        'www.xgtaotu.com': function () {
+            $('#divStayTopright').remove();//移除广告等无必要元素
+
+            $('body > center').eq(1).after(injectComponent);
         }
     };
     injectAggregateObj[currentHostname]();
