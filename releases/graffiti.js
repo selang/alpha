@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.15
+// @version      2.16
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lesmao\.me/
@@ -79,9 +79,8 @@ var Alpha_Script = {
     priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
     priorityLog('已实现：蕾丝猫(http://www.lesmao.me)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)，宅男女神(http://www.nvshens.com)，24美女图片(http://www.24meinv.me)，爱套图(http://www.aitaotu.com)，妹子图(http://www.mzitu.com)');
     priorityLog('Beautyleg腿模写真(http://www.beautylegmm.com)，美女58(http://www.meinv58.com)');
-    priorityLog('性感套图(http://www.xgtaotu.com/)');
-    priorityLog('未实现：美拍写真(http://www.mpxz.net/),MMM11(http://www.mmm11.cc/),优姿美女（http://www.youzi4.cc/)\n' +
-        '\t秀美眉(http://www.xiumeim.com/)，美桌(http://www.win4000.com/)');
+    priorityLog('性感套图(http://www.xgtaotu.com/)，妹子秀(http://www.xiuaa.com/)，优姿美女（http://www.youzi4.cc/)，秀美眉(http://www.xiumeim.com/)');
+    priorityLog('未实现：美桌(http://www.win4000.com/)');
 
     var currentPageUrl = window.location.href;
     var currentHostname = window.location.hostname;
@@ -451,6 +450,88 @@ var Alpha_Script = {
             }
         });
 
+    commonObj.meet(
+        {
+            domain: 'www.xiuaa.com',
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            limitPage: 1,
+            success: function () {
+                var match = currentPathname.match(/^\/(\w+\/\d+)/im);
+                if (match !== null) {
+                    var partPreUrl = '';
+                    var pageId = match[1];
+                    var suffixUrl = '.html';
+                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
+                    var pageStr = $('#pager > ul > li:nth-child(1) > a').text().trim();
+                    log('pageStr:' + pageStr);
+                    if (pageStr) {
+                        this.limitPage = parseInt(pageStr)-1;
+                        log('limitPage:' + this.limitPage);
+                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 0, this.limitPage, suffixUrl, currentHostname);
+                    } else {
+
+                    }
+                }
+            }
+        });
+
+    commonObj.meet(
+        {
+            domain: 'www.youzi4.cc',
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            limitPage: 1,
+            success: function () {
+                var match = currentPathname.match(/^\/(\w+.*\/\d+)/im);
+                if (match !== null) {
+                    var partPreUrl = '';
+                    var pageId = match[1];
+                    var suffixUrl = '.html';
+                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
+                    var pageStr = $('div.page-tag> ul > div > div > a ').eq(-2).text().trim();
+                    log('pageStr:' + pageStr);
+                    if (pageStr) {
+                        this.limitPage = parseInt(pageStr)-1;
+                        log('limitPage:' + this.limitPage);
+                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 1, this.limitPage, suffixUrl, currentHostname);
+                    } else {
+
+                    }
+                }
+            }
+        });
+
+    commonObj.meet(
+        {
+            domain: 'www.xiumeim.com',
+            startUrl: currentProtocol + '//' + currentHostname + '/',
+            limitPage: 1,
+            success: function () {
+                var match = currentPathname.match(/^\/(photos\/\w+-\d+)/im);
+                if (match !== null) {
+                    var partPreUrl = '';
+                    var pageId = match[1];
+                    var suffixUrl = '.html';
+                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
+                    var pageStr = $('div.paginator > span.count').text().trim();
+                    log('pageStr:' + pageStr);
+                    if (pageStr) {
+                        var myregexp = /\(共(\d+)页\)/m;
+                        var match = myregexp.exec(pageStr);
+                        if (match != null) {
+                            this.limitPage = parseInt(match[1]);
+                            log('limitPage:' + this.limitPage);
+                            currentWindowImpl(this.startUrl + partPreUrl + pageId + '-', 2, this.limitPage, suffixUrl, currentHostname);
+                        } else {
+
+                        }
+
+                    } else {
+
+                    }
+                }
+            }
+        });
+
     if ('www.youtube.com' === currentHostname) {
         var vId = "";
         var id = setInterval(function () {
@@ -610,6 +691,17 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentH
             'www.xgtaotu.com': function () {
                 $('body > div.pic').hide();
                 $('p b a').parent().parent().hide();
+            },
+            'www.xiuaa.com': function () {
+                $('#bigpic').hide();
+                $('#pager').hide();
+            },
+            'www.youzi4.cc': function () {
+                $('#picBody').hide();
+                $('div.page-tag').hide();
+            },
+            'www.xiumeim.com': function () {
+                $('div.gallary_wrap').hide();
             }
         };
         hideObj[currentHostname]();
@@ -666,6 +758,17 @@ function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentH
             'www.xgtaotu.com': function () {
                 $('body > div.pic').show();
                 $('p b a').parent().parent().show();
+            },
+            'www.xiuaa.com': function () {
+                $('#bigpic').show();
+                $('#pager').show();
+            },
+            'www.youzi4.cc': function () {
+                $('#picBody').show();
+                $('div.page-tag').show();
+            },
+            'www.xiumeim.com': function () {
+                $('div.gallary_wrap').show();
             }
         };
         showObj[currentHostname]();
@@ -798,6 +901,15 @@ function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) 
                                 'www.xgtaotu.com': function (doc) {
                                     return $(doc).find('p a > img');
                                 },
+                                'www.xiuaa.com': function (doc) {
+                                    return $(doc).find('#bigpic a img');
+                                },
+                                'www.youzi4.cc': function (doc) {
+                                    return $(doc).find('#picBody p a img');
+                                },
+                                'www.xiumeim.com': function (doc) {
+                                    return $(doc).find('table > tbody > tr > td > img');
+                                },
                             };
                             return function (response) {
                                 var html = response.responseText;
@@ -910,6 +1022,18 @@ function injectAggregationRef(currentHostname) {
             $('#divStayTopright').remove();//移除广告等无必要元素
 
             $('body > center').eq(1).after(injectComponent);
+        },
+        'www.xiuaa.com': function () {
+
+            $('#entry .postinfo').after(injectComponent);
+        },
+        'www.youzi4.cc': function () {
+
+            $('div.articleV4Desc').after(injectComponent);
+        },
+        'www.xiumeim.com': function () {
+
+            $('div.album_desc div.inline').after(injectComponent);
         }
     };
     injectAggregateObj[currentHostname]();
