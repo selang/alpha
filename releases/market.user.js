@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         IG-XE-CS-GO
 // @namespace    http://cmsv1.findmd5.com
-// @version      0.0.15
+// @version      0.0.16
 // @description
 // @author       clownfish
 // @include      /https?:\/\/www\.igxe\.cn/
@@ -51,29 +51,39 @@ var Alpha_Script = {
 function igxecsgo_ChechItemPriceRatio() {//列表页方法
     var igxecsgo_ItemPrice = $("div.s2 span b");//市场价
     var igxecsgo_ItemPrice2 = $("div.s3 span strong");//卖家价
+    var delayTimeArr = $("div.s1 div.fr");//延时
     var igxecsgo_ItemCount2 = 1;
     igxecsgo_ItemPrice2.each(function () {
         var _ratio = (Number(igxecsgo_ItemPrice2[igxecsgo_ItemCount2 - 1].innerText) / Number(igxecsgo_ItemPrice[igxecsgo_ItemCount2 - 1].innerText)).toFixed(4);
+        var parent = $(this).parent().parent();
+        var delayTimeE = delayTimeArr[igxecsgo_ItemCount2 - 1];
+        $(delayTimeE).css("display", "none");
+        var delayTimeTxt = delayTimeE.innerText;
+        if ('可立即取回' === delayTimeTxt) {
+            parent.after('<p style=\"font-size:14px;color:red;\">' + delayTimeTxt + '</p>');
+        } else {
+            parent.after('<p style=\"font-size:14px;color:green;\">' + delayTimeTxt + '</p>');
+        }
         if (_ratio <= 0.5) {
-            $(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#fff;\">' + _ratio + '</strong> ->先下手为强</p>');
-            $(this).parent().parent().parent().parent().css({"border": "2px solid #fff"});
+            parent.after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#fff;\">' + _ratio + '</strong> ->先下手为强</p>');
+            parent.parent().parent().css({"border": "2px solid #fff"});
             //layer.open({title: igxecsgo_Name, content: '本页有低于0.5比例的饰品!'});
         } else if (0.5 < _ratio && _ratio <= 0.6) {
-            $(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#09f;\">' + _ratio + '</strong> ->好价速秒</p>');
-            $(this).parent().parent().parent().parent().css({"border": "2px solid #09f"});
+            parent.after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#09f;\">' + _ratio + '</strong> ->好价速秒</p>');
+            parent.parent().parent().css({"border": "2px solid #09f"});
         } else if (0.6 < _ratio && _ratio <= 0.7) {
-            $(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#080;\">' + _ratio + '</strong> ->大商出货</p>');
-            $(this).parent().parent().parent().parent().css({"border": "2px solid #080"});
+            parent.after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#080;\">' + _ratio + '</strong> ->大商出货</p>');
+            parent.parent().parent().css({"border": "2px solid #080"});
         } else if (0.7 < _ratio && _ratio <= 0.8) {
-            $(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#a0ff58;\">' + _ratio + '</strong> ->正常贸易</p>');
-            $(this).parent().parent().parent().parent().css({"border": "2px solid #a0ff58"});
+            parent.after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#a0ff58;\">' + _ratio + '</strong> ->正常贸易</p>');
+            parent.parent().parent().css({"border": "2px solid #a0ff58"});
         } else if (0.8 < _ratio && _ratio <= 1) {
-            $(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#f0ad4e;\">' + _ratio + '</strong> ->建议去Steam市场</p>');
-            $(this).parent().parent().parent().parent().css({"border": "2px solid #f0ad4e"});
+            parent.after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#f0ad4e;\">' + _ratio + '</strong> ->建议去Steam市场</p>');
+            parent.parent().parent().css({"border": "2px solid #f0ad4e"});
             // $(this).parent().parent().parent().parent().remove();
         } else {
-            $(this).parent().parent().after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#c43f0f;\">' + _ratio + '</strong> ->玄学,静待有缘人</p>');
-            $(this).parent().parent().parent().parent().css({"border": "2px solid #c43f0f"});
+            parent.after('<p style=\"font-size:14px;\">比例: <strong style=\"color:#c43f0f;\">' + _ratio + '</strong> ->玄学,静待有缘人</p>');
+            parent.parent().parent().css({"border": "2px solid #c43f0f"});
             // $(this).parent().parent().parent().parent().remove();
         }
         igxecsgo_ItemCount2 += 1;
@@ -199,7 +209,6 @@ function igxecsgo_ChechItemPriceRatio2() {//详情页方法
     }
 
     {
-
     }
 
 }
