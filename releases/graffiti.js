@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.17
+// @version      2.18
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lsmpx\.com/
@@ -21,6 +21,7 @@
 // @include       /https?\:\/\/www\.win4000\.com/
 // @include       /https?\:\/\/www\.7kmn\.com/
 // @include       /https?\:\/\/www\.mm131\.com/
+// @include       /https?\:\/\/www\.114tuku\.com/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js
@@ -94,7 +95,7 @@ var Alpha_Script = {
     priorityLog('如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
     priorityLog('已实现：','蕾丝猫(http://www.lesmao.me)','优美(http://www.umei.cc)','美图录(http://www.meitulu.com)','美女86(http://www.17786.com)','宅男女神(http://www.nvshens.com)','爱套图(http://www.aitaotu.com)','妹子图(http://www.mzitu.com)');
     priorityLog('\t\tBeautyleg腿模写真(http://www.beautylegmm.com)','性感套图(http://www.xgtaotu.com/)','秀美眉(http://www.xiumeim.com/)','优姿美女（http://www.youzi4.cc/)','秀美眉(http://www.xiumeim.com/)','美女图片(http://www.mm131.com)');
-    priorityLog('\t\t美桌(http://www.win4000.com/)');
+    priorityLog('\t\t美桌(http://www.win4000.com/)', '114tuku(http://www.114tuku.com/)');
     priorityLog('未实现：');
 
     function injectBtns() {
@@ -953,6 +954,47 @@ var Alpha_Script = {
         if (src) {
             $(imgE).attr('src',src);
         }
+    }).start();
+
+    injectBtns().domain('www.114tuku.com').removeAD(function () {
+        setInterval(function () {
+            $('iframe').remove();
+            $('div[baidu_imageplus_sensitive_judge="true"]').remove();
+        }, 100);
+    }).switchAggregationBtn(function () {
+        $('#picBody').hide();
+        $('#pages').hide();
+    }, function () {
+        $('#picBody').show();
+        $('#pages').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/\/(\w+?p)\d+\//m);
+        if (match !== null) {
+            if ($('div.content_body a img').length > 0) {
+                {
+                    var totalPageCnt = 1;
+                    var partPreUrl = match[1];
+                    var pageId = '';
+                    var suffixUrl = '/';
+                    var limitPageStr = $('#pages > a:last-child').prev().text();
+                    if (limitPageStr) {
+                        totalPageCnt = parseInt(limitPageStr);
+                        log('totalPageCnt', totalPageCnt);
+                    }
+                    for (var i = 1; i <= totalPageCnt; i++) {
+                        var pageUrl = partPreUrl + pageId + i + suffixUrl;
+                        log('push pageUrl:', pageUrl);
+                        pageUrls.push(pageUrl);
+                    }
+                }
+                $('div.tags').after(injectComponent);
+            }
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('div.content_body a img');
+    }, function (imgE) {
+        imgE.style = "width: 100%;";
     }).start();
 
     if (false && 'www.youtube.com' === window.location.hostname) {
