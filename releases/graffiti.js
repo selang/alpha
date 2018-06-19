@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.18
+// @version      3.02
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lsmpx\.com/
@@ -93,7 +93,7 @@ var Alpha_Script = {
     'use strict';
     priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。');
     priorityLog('如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
-    priorityLog('已实现：','蕾丝猫(http://www.lesmao.me)','优美(http://www.umei.cc)','美图录(http://www.meitulu.com)','美女86(http://www.17786.com)','宅男女神(http://www.nvshens.com)','爱套图(http://www.aitaotu.com)','妹子图(http://www.mzitu.com)');
+    priorityLog('已实现：', '蕾丝猫(http://www.lsmpx.com)', '优美(http://www.umei.cc)', '美图录(http://www.meitulu.com)', '美女86(http://www.17786.com)', '宅男女神(http://www.nvshens.com)', '爱套图(http://www.aitaotu.com)', '妹子图(http://www.mzitu.com)');
     priorityLog('\t\tBeautyleg腿模写真(http://www.beautylegmm.com)','性感套图(http://www.xgtaotu.com/)','秀美眉(http://www.xiumeim.com/)','优姿美女（http://www.youzi4.cc/)','秀美眉(http://www.xiumeim.com/)','美女图片(http://www.mm131.com)');
     priorityLog('\t\t美桌(http://www.win4000.com/)', '114tuku(http://www.114tuku.com/)');
     priorityLog('未实现：');
