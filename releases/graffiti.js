@@ -1,32 +1,30 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      2.16
+// @version      2.17
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
-// @include       /https?\:\/\/www\.lesmao\.me/
+// @include       /https?\:\/\/www\.lsmpx\.com/
 // @include       /https?\:\/\/www\.umei\.cc/
 // @include       /https?\:\/\/www\.meitulu\.com/
 // @include       /https?\:\/\/www\.17786\.com/
 // @include       /https?\:\/\/www\.nvshens\.com/
 // @include       /https?\:\/\/m\.nvshens\.com/
 // @include       /https?\:\/\/www\.youtube\.com/
-// @include       /https?\:\/\/www\.24meinv\.me/
 // @include       /https?\:\/\/www\.aitaotu\.com/
 // @include       /https?\:\/\/www\.mzitu\.com/
 // @include       /https?\:\/\/www\.beautylegmm\.com/
 // @include       /https?\:\/\/www\.rosiyy\.com/
-// @include       /https?\:\/\/www\.meinv58\.com/
 // @include       /https?\:\/\/www\.xgtaotu\.com/
-// @include       /https?\:\/\/www\.xiuaa\.com/
 // @include       /https?\:\/\/www\.youzi4\.cc/
 // @include       /https?\:\/\/www\.xiumeim\.com/
 // @include       /https?\:\/\/www\.win4000\.com/
 // @include       /https?\:\/\/www\.7kmn\.com/
+// @include       /https?\:\/\/www\.mm131\.com/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
-// @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js
-// @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.5.2/dom-to-image.min.js
-// @require       https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js
+// @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js
+// @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js
+// @require       https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/dexie/1.5.1/dexie.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/webtorrent/0.98.19/webtorrent.min.js
 // @connect      *
@@ -36,12 +34,29 @@
 // @grant        GM_getTabs
 // @grant        GM_saveTab
 // @grant        GM_xmlhttpRequest
+// @grant        GM_addStyle
 // @grant        GM_registerMenuCommand
 // @grant        unsafeWindow
 // ==/UserScript==
 
-var blobCache = {};
-var blobUrlCache = {};
+GM_addStyle(".sl-btn { border:1 !important; } .sl-c-pic { margin-top:6px } ");
+
+//日志
+function log() {
+    if (false) {
+        console.log.apply(this, arguments);
+    }
+};
+
+function err() {
+    if (true) {
+        console.error.apply(this, arguments);
+    }
+}
+
+function priorityLog() {
+    console.log.apply(this, arguments);
+}
 
 var Alpha_Script = {
     obtainHtml: function (options) {
@@ -75,464 +90,872 @@ var Alpha_Script = {
 
 (function () {
     'use strict';
+    priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。');
+    priorityLog('如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
+    priorityLog('已实现：','蕾丝猫(http://www.lesmao.me)','优美(http://www.umei.cc)','美图录(http://www.meitulu.com)','美女86(http://www.17786.com)','宅男女神(http://www.nvshens.com)','爱套图(http://www.aitaotu.com)','妹子图(http://www.mzitu.com)');
+    priorityLog('\t\tBeautyleg腿模写真(http://www.beautylegmm.com)','性感套图(http://www.xgtaotu.com/)','秀美眉(http://www.xiumeim.com/)','优姿美女（http://www.youzi4.cc/)','秀美眉(http://www.xiumeim.com/)','美女图片(http://www.mm131.com)');
+    priorityLog('\t\t美桌(http://www.win4000.com/)');
+    priorityLog('未实现：');
 
-    priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
-    priorityLog('已实现：蕾丝猫(http://www.lesmao.me)，优美(http://www.umei.cc)，美图录(http://www.meitulu.com)，美女86(http://www.17786.com)，宅男女神(http://www.nvshens.com)，24美女图片(http://www.24meinv.me)，爱套图(http://www.aitaotu.com)，妹子图(http://www.mzitu.com)');
-    priorityLog('Beautyleg腿模写真(http://www.beautylegmm.com)，美女58(http://www.meinv58.com)');
-    priorityLog('性感套图(http://www.xgtaotu.com/)，妹子秀(http://www.xiuaa.com/)，优姿美女（http://www.youzi4.cc/)，秀美眉(http://www.xiumeim.com/)');
-    priorityLog('未实现：美桌(http://www.win4000.com/)');
+    function injectBtns() {
+        var blobCache = {};
+        var blobUrlCache = {};
 
-    var currentPageUrl = window.location.href;
-    var currentHostname = window.location.hostname;
-    var currentPathname = window.location.pathname;
-    var currentProtocol = window.location.protocol;
-    hotkeys();
-    var pagesCommonObj = function () {
-        return {
-            'meet': function (options) {
-                options = options || {};
-                options.domain = options.domain || '';
-                options.success = options.success || function () {
-
-                };
-                options.fail = options.fail || function () {
-
-                };
-                var matchDomain = false;
-                log(options.domain);
-                if (Alpha_Script.isArray(options.domain)) {
-                    for (var i = 0; i < options.domain.length; i++) {
-                        if (options.domain[i] === currentHostname) {
-                            matchDomain = true;
+        var pageUrls = [];
+        var injectComponent =
+            '<input id="captureBtn" type="button" class="sl-btn" value="截图并下载"/>' +
+            '<span>&nbsp;&nbsp;</span>' +
+            '<input id="packageBtn" type="button" class="sl-btn" value="打包下载聚合图片"/>' +
+            '<span>&nbsp;&nbsp;</span>' +
+            '<input id="injectaggregatBtn" type="button" class="sl-btn" value="聚合显示"/>';
+        var domain = '';
+        var hostName = window.location.hostname;
+        var protocol = window.location.protocol;
+        var startUrl = protocol + '//' + hostName + '/';
+        var injectAggregationRef = null;
+        var switchAggregationBtn = null;
+        var collectPics = null;
+        var switchAggregationBtnTemplateFunc = function (aggregationDispayFunc, aggregationDispayNoneFunc) {
+            if ($('#injectaggregatBtn').val() === '聚合显示') {
+                $('#injectaggregatBtn').val('聚合隐藏');
+                $('#c_container').show();
+                aggregationDispayFunc();
+            } else {
+                $('#injectaggregatBtn').val('聚合显示');
+                $('#c_container').hide();
+                aggregationDispayNoneFunc();
+            }
+        };
+        var collectPicsTemplateFunc = function (parseImgsFunc, imgStyleFunc) {
+            var id = setInterval(function () {
+                if ($) {
+                    clearInterval(id);
+                    var breakPageLoop = false;
+                    for (var i = 0, len = pageUrls.length; i < len; i++) {
+                        //创建div去装各自
+                        $('#c_container').append('<div id="c_' + i + '"></div>');
+                        if (!breakPageLoop) {
+                            var pageUrl = startUrl + pageUrls[i];
+                            Alpha_Script.obtainHtml({
+                                url: pageUrl,
+                                headers: Alpha_Script.parseHeaders("Accept:image/webp,image/*,*/*;q=0.8\n" +
+                                    "Accept-Encoding:gzip, deflate, sdch\n" +
+                                    "Accept-Language:zh-CN,zh;q=0.8\n" +
+                                    "Referer:" + window.location.href + "\n" +
+                                    "User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+                                ),
+                                method: 'GET',
+                                onload: function () {
+                                    var _i = i;
+                                    var _pageUrl = pageUrl;
+                                    return function (response) {
+                                        log('response pageUrl:', _pageUrl);
+                                        if (response && response.status && response.status >= 200 && response.status < 300) {
+                                            var html = response.responseText;
+                                            // log('html==>',html);
+                                            var parser = new DOMParser();
+                                            var doc = parser.parseFromString(html, "text/html");
+                                            var imgObj = parseImgsFunc(doc);
+                                            var imgContainerCssSelector = '#c_' + _i;
+                                            log(imgContainerCssSelector);
+                                            $(imgObj).each(function (index) {
+                                                log(index, ':', $(this).prop('outerHTML'));
+                                                if (imgStyleFunc) {
+                                                    imgStyleFunc($(this)[0]);
+                                                } else {
+                                                    $(this)[0].style = "width: 100%;height: 100%";
+                                                }
+                                                $(this).attr('label', 'sl');
+                                                $(imgContainerCssSelector).append('<div class="sl-c-pic">' + $(this).prop('outerHTML') + '</div>');
+                                            });
+                                        }
+                                    };
+                                }()
+                            });
+                        } else {
                             break;
                         }
                     }
-                } else {
-                    matchDomain = options.domain === currentHostname || options.domain === '';
                 }
-                log('matchDomain:' + matchDomain);
-                if (matchDomain) {
-                    options.success();
-                } else {
-                    options.fail();
+            }, 100);
+        };
+        var match = function () {
+        };
+        var mismatch = function () {
+        };
+        var meet = function (options) {
+            options = options || {};
+            options.domain = options.domain || domain;
+            options.match = options.match || match;
+            options.mismatch = options.mismatch || mismatch;
+            log(options.domain);
+            var matchDomain = false;
+            if (Alpha_Script.isArray(options.domain)) {
+                for (var i = 0; i < options.domain.length; i++) {
+                    if (options.domain[i] === hostName) {
+                        matchDomain = true;
+                        break;
+                    }
+                }
+            } else {
+                matchDomain = options.domain === hostName || options.domain === '';
+            }
+            return matchDomain;
+        };
+        var removeAD = null;
+
+        function packageAndDownload() {
+            var zip = new JSZip();
+            var imgList = $('img[label="sl"]');
+            var length = imgList.length;
+            $.each(imgList, function (index, value) {
+                zip.file("readme.txt", "感谢使用selang提供的插件。欢迎进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy\n");
+                var img = zip.folder("images");
+                var imgSrc = $(value).attr('src');
+                {
+                    if (blobCache[imgSrc]) {
+                        img.file(index + ".jpg", blobCache[imgSrc], {base64: false});
+                        length--;
+                    } else {
+                        if (!imgSrc.startsWith('blob:')) {
+                            Alpha_Script.obtainHtml({
+                                url: imgSrc,
+                                method: 'GET',
+                                headers: {
+                                    "Accept": "application/*",
+                                    "Referer": window.location.origin
+                                },
+                                responseType: 'blob',
+                                onload: function (response) {
+                                    var responseHeaders = Alpha_Script.parseHeaders(response.responseHeaders);
+                                    var contentType = responseHeaders['Content-Type'];
+                                    if (!contentType) {
+                                        contentType = "image/png";
+                                    }
+                                    var blob = new Blob([response.response], {type: contentType});
+                                    blobCache[imgSrc] = blob;
+                                    img.file(index + ".jpg", blobCache[imgSrc], {base64: false});
+                                    length--;
+                                }
+                            });
+                        } else {
+                            img.file(index + ".jpg", blobCache[blobUrlCache[imgSrc]], {base64: false});
+                            length--;
+                        }
+                    }
+                }
+            });
+            var id = setInterval(function () {
+                if (length == 0) {
+                    clearInterval(id);
+                    zip.generateAsync({type: "blob"})
+                        .then(function (content) {
+                            saveAs(content, "PackageSL.zip");
+                        });
+                }
+            }, 100);
+        }
+
+        function bindBtn(callback) {
+            $('#injectaggregatBtn').bind('click', callback);
+            $('#captureBtn').bind('click', function (e) {
+                var imgList = $('img[label="sl"]');
+                var length = imgList.length;
+                $.each(imgList, function (index, value) {
+                    var imgSrc = $(value).attr('src');
+                    {
+                        if (blobCache[imgSrc]) {
+                            length--;
+                        } else {
+                            if (!imgSrc.startsWith('blob:')) {
+                                Alpha_Script.obtainHtml({
+                                    url: imgSrc,
+                                    method: 'GET',
+                                    headers: {
+                                        "Accept": "application/*"
+                                    },
+                                    responseType: 'blob',
+                                    onload: function (response) {
+                                        var responseHeaders = Alpha_Script.parseHeaders(response.responseHeaders);
+                                        var contentType = responseHeaders['Content-Type'];
+                                        if (!contentType) {
+                                            contentType = "image/png";
+                                        }
+                                        var blob = new Blob([response.response], {type: contentType});
+                                        blobCache[imgSrc] = blob;
+                                        length--;
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+                var id = setInterval(function () {
+                    if (length == 0) {
+                        clearInterval(id);
+                        var length2 = imgList.length;
+                        $.each(imgList, function (index, value) {
+                            var imgSrc = $(value).attr('src');
+                            {
+                                if (!imgSrc.startsWith('blob:')) {
+                                    if (blobCache[imgSrc]) {
+                                        var objectURL = URL.createObjectURL(blobCache[imgSrc]);
+                                        blobUrlCache[objectURL] = imgSrc;
+                                        $(value).attr('src', objectURL);
+                                        length2--;
+                                    }
+                                } else {
+                                    length2--;
+                                }
+                            }
+                        });
+                        var id2 = setInterval(function () {
+                            if (length2 == 0) {
+                                clearInterval(id2);
+                                var cContainner = $('#c_container').get(0);
+                                domtoimage.toBlob(cContainner)
+                                    .then(function (blob) {
+                                        if (blob) {
+                                            saveAs(blob, "captureSL.png");
+                                        } else {
+                                            err('截图太大不能保存!');
+                                        }
+                                    })
+                                    .catch(function (error) {
+                                        err('截图太大不能保存!');
+                                    });
+                            }
+                        }, 100);
+
+                    }
+                }, 100);
+            });
+            $('#packageBtn').bind('click', function (e) {
+                packageAndDownload();
+            });
+        };
+
+        //热键
+        function hotkeys() {
+            GM_registerMenuCommand("图片打包下载", packageAndDownload, "d");
+            $(document).keydown(function (e) {
+                if (e.ctrlKey && e.shiftKey) {
+                    if (e.which == 76) {//L
+                        log("触发快捷键");
+                    }
+                }
+            });
+        }
+
+        return {
+            injectComponent: function (i) {
+                if (i) injectComponent = i;
+                return this;
+            },
+            domain: function (d) {
+                if (d) domain = d;
+                return this;
+            },
+            removeAD: function (fun) {
+                if (fun) removeAD = fun;
+                return this;
+            },
+            match: function (fun) {
+                if (fun) match = fun;
+                return this;
+            },
+            mismatch: function (fun) {
+                if (fun) mismatch = fun;
+                return this;
+            },
+            injectAggregationRef: function (fun) {
+                if (fun) injectAggregationRef = fun;
+                return this;
+            },
+            switchAggregationBtn: function (aggregationDispayFunc, aggregationDispayNoneFunc) {
+                switchAggregationBtn = function () {
+                    switchAggregationBtnTemplateFunc(aggregationDispayFunc, aggregationDispayNoneFunc);
+                };
+                return this;
+            },
+            collectPics: function (parseImgsFunc, imgStyleFunc) {
+                collectPics = function () {
+                    collectPicsTemplateFunc(parseImgsFunc, imgStyleFunc);
                 }
                 return this;
-            }
-        };
-    };
-    var commonObj = pagesCommonObj();
-    commonObj.meet(
-        {
-            domain: 'www.lesmao.me',
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            limitPage: 30,
-            success: function () {
-                var match = currentPathname.match(/^\/(thread-\d+-)(\d+)(-\d+\.html)$/im);
-                if (match !== null) {
-                    var partPreUrl = match[1];
-                    var suffixUrl = match[3];
-                    var limitPageStr = $('#thread-page > div > div > label > span').text();
-                    var limitPageMatch = limitPageStr.match(/(\d+)/i);
-                    if (limitPageMatch != null) {
-                        this.limitPage = parseInt(limitPageMatch[1]);
+            },
+            start: function () {
+                //1、匹配当前hostName
+                //2、注入操作界面
+                //3、聚合多页图片
+                //4、显示
+                var matchDomain = meet();
+                if (matchDomain) {
+                    if (removeAD) {
+                        removeAD();
                     }
-                    currentWindowImpl(this.startUrl + partPreUrl, 1, this.limitPage, suffixUrl, currentHostname);
-                } else {
-                    // Match attempt failed
-                    var dest = window.location.search.substr(1);
-                    var mod = Alpha_Script.getParam(dest, 'mod');
-                    if ('viewthread' === mod) {
-                        var tid = Alpha_Script.getParam(dest, 'tid');
-                        var partPreUrl = '/forum.php?mod=viewthread&tid=' + tid + '&page=';
-                        var suffixUrl = '';
-                        var limitPageStr = $('#page > div > label > span').text();
-                        var limitPageMatch = limitPageStr.match(/(\d+)/i);
-                        if (limitPageMatch != null) {
-                            this.limitPage = parseInt(limitPageMatch[1]);
+                    if (injectAggregationRef) {
+                        injectAggregationRef.apply(this, [injectComponent, pageUrls]);
+                        $('#injectaggregatBtn').after('<div id="c_container"></div>');
+                        if (switchAggregationBtn) {
+                            switchAggregationBtn();
+                            if (collectPics) {
+                                collectPics();
+                                hotkeys();
+                            }
                         }
-                        currentWindowImpl(this.startUrl + partPreUrl, 1, this.limitPage, suffixUrl, currentHostname);
-                    }
-                }
-            }
-        });
-    commonObj.meet(
-        {
-            domain: 'www.umei.cc',
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            limitPage: 0,
-            success: function () {
-                var match = currentPathname.match(/^\/(\w+\/\w+(?:\/\w+)?\/)(\d+)(?:_\d+)?\.htm$/im);
-                if (match !== null) {
-                    var partPreUrl = match[1];
-                    var pageId = match[2];
-                    var suffixUrl = '.htm';
-                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
-                    var pageStr = $('.NewPages li a').html();
-                    log(pageStr);
-                    var pageTotalRegexp = /共(\d+)页/m;
-                    var pageTotalMatch = pageTotalRegexp.exec(pageStr);
-                    if (pageTotalMatch != null) {
-                        this.limitPage = pageTotalMatch[1];
-                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 1, this.limitPage, suffixUrl, currentHostname);
-                    }
-                }
-            }
-        });
-    commonObj.meet(
-        {
-            domain: '',
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            limitPage: 0,
-            success: function () {
-
-            }
-        });
-
-    commonObj.meet(
-        {
-            domain: 'www.meitulu.com',
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            limitPage: 0,
-            success: function () {
-                var match = currentPathname.match(/^\/(item\/)(\d+)(?:_\d+)?\.html$/im);
-                if (match !== null) {
-                    var partPreUrl = match[1];
-                    var pageId = match[2];
-                    var suffixUrl = '.html';
-                    var pageStr = $('a.a1:last').prev().html();
-                    log(pageStr);
-                    this.limitPage = parseInt(pageStr);
-                    currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 1, this.limitPage, suffixUrl, currentHostname);
-                }
-            }
-        });
-    commonObj.meet(
-        {
-            domain: 'www.17786.com',
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            success: function () {
-                var match = currentPathname.match(/^\/(\d+)(?:_\d+)?\.html$/im); //http://www.17786.com/7745_1.html
-                if (match != null) {
-                    var partPreUrl = '';
-                    var pageId = match[1];
-                    var suffixUrl = '.html';
-                    var pageStr = $('h2').html();
-                    var limitPage = 0;
-                    var pageStrRegexp = /\(\d+\/(\d+)\)/im;
-                    var match = pageStrRegexp.exec(pageStr);
-                    if (match != null) {
-                        limitPage = parseInt(match[1]);
-                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 1, limitPage, suffixUrl, currentHostname);
+                        bindBtn(function () {
+                            if (switchAggregationBtn) {
+                                switchAggregationBtn();
+                            }
+                        });
                     }
                 } else {
-                    var match = currentPathname.match(/^\/((?:\w+\/)+)(\d+)(?:_\d+)?\.html$/im);//http://www.17786.com/beautiful/feizhuliutupian/44569.html
-                    if (match != null) {
-                        var partPreUrl = match[1];
-                        var pageId = match[2];
-                        var suffixUrl = '.html';
-                        var pageStr = $('h2').html();
-                        log(pageStr);
-                        var limitPage = 40;
-                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 1, limitPage, suffixUrl, currentHostname);
-                    }
+
                 }
             }
-        });
-    commonObj.meet(
-        {
-            domain: ['www.nvshens.com', 'm.nvshens.com'],
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            success: function () {
-                var match = currentPathname.match(/^\/(g\/\d+)\/?(?:\d+\.html)?$/im);
-                if (match !== null) {
+        }
+    }
+
+    injectBtns().domain('www.lsmpx.com').switchAggregationBtn(function () {
+        $('#thread-pic').hide();
+        $('#thread-page').hide();
+    }, function () {
+        $('#thread-pic').show();
+        $('#thread-page').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var match = window.location.pathname.match(/^\/(thread-\d+-)(\d+)(-\d+\.html)$/im);
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = match[1];
+                var suffixUrl = match[3];
+                var limitPageStr = $('#thread-page > div > div > label > span').text();
+                var limitPageMatch = limitPageStr.match(/(\d+)/i);
+                if (limitPageMatch != null) {
+                    totalPageCnt = parseInt(limitPageMatch[1]);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = partPreUrl + i + suffixUrl;
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
+                }
+            }
+            $('.thread-tr').after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('ul > li > img');
+    }, function (imgE) {
+        imgE.style = "width: 100%;height: 100%";
+    }).start();
+
+    injectBtns().domain('www.umei.cc').switchAggregationBtn(function () {
+        $('.ImageBody').hide();
+    }, function () {
+        $('.ImageBody').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/^\/(\w+\/\w+(?:\/\w+)?\/)(\d+)(?:_\d+)?\.htm$/im);
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = match[1];
+                var pageId = match[2];
+                var suffixUrl = '.htm';
+                var limitPageStr = $('.NewPages li a').html();
+                var limitPageMatch = limitPageStr.match(/共(\d+)页/m);
+                if (limitPageMatch != null) {
+                    totalPageCnt = parseInt(limitPageMatch[1]);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = partPreUrl + pageId + '_' + i + suffixUrl;
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
+                }
+            }
+            $($('.hr10')[0]).after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('.ImageBody p img');
+    }, function (imgE) {
+        imgE.style = "width: 100%;height: 100%";
+    }).start();
+
+    injectBtns().domain('www.meitulu.com').removeAD(function () {
+        $("a[id^='__tg_ciw_a__']").remove();
+        $("a[id^='__qdd_ciw_a__']").remove();
+        $('iframe').remove();//移除广告等无必要元素
+    }).switchAggregationBtn(function () {
+        $('div.content').hide();
+        $('body > center').hide();
+    }, function () {
+        $('div.content').show();
+        $('body > center').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/^\/(item\/)(\d+)(?:_\d+)?\.html$/im);
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = match[1];
+                var pageId = match[2];
+                var suffixUrl = '.html';
+                var limitPageStr = $('a.a1:last').prev().html();
+                totalPageCnt = parseInt(limitPageStr);
+                log('totalPageCnt', totalPageCnt);
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = '';
+                    if (i == 1) {
+                        pageUrl = partPreUrl + pageId + suffixUrl;
+                    } else {
+                        pageUrl = partPreUrl + pageId + '_' + i + suffixUrl;
+                    }
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
+                }
+            }
+            $('div.bk3').after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('div.content > center  > img');
+    }, function (imgE) {
+        imgE.style = "width: 100%;height: 100%";
+    }).start();
+
+    injectBtns().domain('www.17786.com').switchAggregationBtn(function () {
+        $('div.img_box').hide();
+        $('div.wt-pagelist').hide();
+        $('div#picBody').hide();
+        $('.articleV2Page').hide();
+    }, function () {
+        $('div.img_box').show();
+        $('div.wt-pagelist').show();
+        $('div#picBody').show();
+        $('.articleV2Page').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/^\/(\d+)(?:_\d+)?\.html$/im); //http://www.17786.com/7745_1.html
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = '';
+                var pageId = match[1];
+                var suffixUrl = '.html';
+                var limitPageStr = $('h2').html();
+                var limitPageMatch = limitPageStr.match(/\(\d+\/(\d+)\)/im);
+                if (limitPageMatch != null) {
+                    totalPageCnt = parseInt(limitPageMatch[1]);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = partPreUrl + pageId + '_' + i + suffixUrl;
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
+                }
+            }
+            $('div.tsmaincont-desc').after(injectComponent);
+        } else {
+            var match = currentPathname.match(/^\/((?:\w+\/)+)(\d+)(?:_\d+)?\.html$/im);//http://www.17786.com/beautiful/feizhuliutupian/44569.html
+            if (match != null) {
+                {
+                    var totalPageCnt = 50;
                     var partPreUrl = match[1];
-                    var pageId = '/';
+                    var pageId = match[2];
                     var suffixUrl = '.html';
-                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
-                    var pageStr = $('div#dinfo span[style="color: #DB0909"]').html();
-                    if (!pageStr) {
-                        pageStr = $('div#ddinfo span[style="color: #DB0909"]').html();
+                    log('totalPageCnt', totalPageCnt);
+                    for (var i = 1; i <= totalPageCnt; i++) {
+                        var pageUrl = '';
+                        if (i == 1) {
+                            pageUrl = partPreUrl + pageId + suffixUrl;
+                        } else {
+                            pageUrl = partPreUrl + pageId + '_' + i + suffixUrl;
+                        }
+                        log('push pageUrl:', pageUrl);
+                        pageUrls.push(pageUrl);
                     }
-                    var pageNumMatch = pageStr.match(/(\d+)张照片/im);
-                    if (pageNumMatch != null) {
-                        pageStr = pageNumMatch[1];
-                    }
-                    var limitPage = parseInt(pageStr);
-                    var number = limitPage % 5;
-                    limitPage = Math.floor(limitPage / 5);
+                }
+
+                $('div.articleV2Desc').after(injectComponent);
+            }
+        }
+    }).collectPics(function (doc) {
+        var imgObj = $(doc).find('img.IMG_show');
+        if (imgObj.length == 0) {
+            imgObj = $(doc).find('a#RightUrl img');
+        }
+        return imgObj;
+    }, function (imgE) {
+        imgE.style = "width: 100%;height: 100%";
+    }).start();
+
+
+    injectBtns().domain('www.nvshens.com').removeAD(function () {
+        $('div[id^=mms]').remove();//移除广告等无必要元素
+    }).switchAggregationBtn(function () {
+        $('div.ck-box-unit').hide();
+        $('div.photos').hide();
+        $('div#imgwrap').hide();
+    }, function () {
+        $('div.ck-box-unit').show();
+        $('div.photos').show();
+        $('div#imgwrap').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/^\/(g\/\d+)\/?(?:\d+\.html)?$/im);//https://www.nvshens.com/g/26489/1.html
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = match[1];
+                var pageId = '/';
+                var suffixUrl = '.html';
+                var limitPageStr = $('div#dinfo span[style="color: #DB0909"]').html();
+                var limitPageMatch = limitPageStr.match(/(\d+)张照片/im);
+                if (limitPageMatch != null) {
+                    var totalPics = parseInt(limitPageMatch[1]);
+                    var number = totalPics % 5;
+                    totalPageCnt = Math.floor(totalPics / 5);
                     if (number > 0) {
-                        limitPage = limitPage + 1;
+                        totalPageCnt = totalPageCnt + 1;
                     }
-                    log(limitPage);
-                    currentWindowImpl(this.startUrl + partPreUrl + pageId, 1, limitPage, suffixUrl, currentHostname);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = partPreUrl + pageId + i + suffixUrl;
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
                 }
             }
-        });
+            $('div#dinfo').after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('ul#hgallery img');
+    }, function (imgE) {
+        imgE.style = "width: 100%;height: 100%";
+    }).start();
 
-    commonObj.meet(
-        {
-            domain: 'www.24meinv.me',
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            limitPage: 0,
-            removeAd: function () {
-                var id = setInterval(function () {
-                    $('#hgg2').remove();
-                    $('#j__s').remove();
-                    $('#__jx_div').remove();
-                    $('iframe').remove();
-                    $('body > div.foot > div > div:nth-child(13)').remove();
-                }, 100);
-            },
-            success: function () {
-                this.removeAd();
-                var match = currentPathname.match(/^\/(\w+\/\w+?)(?:_\d+)?\.html$/im);
-                if (match !== null) {
-                    var partPreUrl = match[1];
-                    var pageId = '';
-                    var suffixUrl = '.html';
-                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
-                    var pageStr = $('div.page.ps > a:last-child').attr('href');
-                    if (pageStr) {
-                        var myregexp = /^\/(\w+\/\w+?)(?:_(\d+))?\.html$/im;
-                        var match = myregexp.exec(pageStr);
-                        if (match == null) {
-                            match = myregexp.exec(currentPathname);
-                        }
-                        if (match != null) {
-                            this.limitPage = parseInt(match[2]);
-                            this.limitPage++;//首页从0开始
-                            currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 0, this.limitPage, suffixUrl, currentHostname);
-                        } else {
+    injectBtns().domain('www.aitaotu.com').removeAD(function () {
+        setInterval(function () {
+            $('#lgVshow').remove();
+            $('div.gg1002').remove();
+        }, 100);
+    }).switchAggregationBtn(function () {
+        $('div.big-pic').hide();
+        $('div.pages').hide();
+    }, function () {
+        $('div.big-pic').show();
+        $('div.pages').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/\/(.+?\/)(\d+)(?:_\d+)?\.html/m);//http://www.aitaotu.com/weimei/36129.html
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = match[1];
+                var pageId = match[2];
+                var suffixUrl = '.html';
+                var limitPageStr = $('div.photo > div.pages > ul > li:last-child > a').attr('href');
+                var limitPageMatch = limitPageStr.match(/\/\w+\/(\d+)(?:_(\d+))?\.html/m);
+                if (limitPageMatch != null) {
+                    totalPageCnt = parseInt(limitPageMatch[2]);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = partPreUrl + pageId + '_' + i + suffixUrl;
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
+                }
+            }
+            $('div.tsmaincont-desc').after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('#big-pic > p > a  > img');
+    }, function (imgE) {
+        imgE.style = "width: 100%;height: 100%";
+    }).start();
 
-                        }
+
+    injectBtns().domain('www.mzitu.com').removeAD(function () {
+
+    }).switchAggregationBtn(function () {
+        $('div.main-image').hide();
+        $('div.pagenavi').hide();
+    }, function () {
+        $('div.main-image').show();
+        $('div.pagenavi').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/\/(\d+)(?:\/\d+)?/m);//http://www.mzitu.com/139218
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = '';
+                var pageId = match[1];
+                var suffixUrl = '';
+                var limitPageStr = $('div.pagenavi >a').last().prev().find('span').text().trim();
+                if (limitPageStr) {
+                    totalPageCnt = parseInt(limitPageStr);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = partPreUrl + pageId + '/' + i + suffixUrl;
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
+                }
+            }
+            $('div.main-meta').after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('div.main-image > p > a > img');
+    }, function (imgE) {
+        imgE.style = "width: 100%;height: 100%";
+    }).start();
+
+    injectBtns().domain('www.beautylegmm.com').removeAD(function () {
+        setInterval(function () {
+            $('iframe').remove();
+        }, 100);
+    }).switchAggregationBtn(function () {
+        $('div.post').hide();
+        $('div.archives_page_bar').hide();
+    }, function () {
+        $('div.post').show();
+        $('div.archives_page_bar').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/^\/(\w+\/beautyleg-\d+\.html)/im);//http://www.beautylegmm.com/Vanessa/beautyleg-1619.html
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = '';
+                var pageId = match[1];
+                var suffixUrl = '';
+                var limitPageStr = $('#contents_post > div.post > div > a:not(.next)').last().text().trim();
+                if (limitPageStr) {
+                    totalPageCnt = parseInt(limitPageStr);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = partPreUrl + pageId + '?page=' + i + suffixUrl;
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
+                }
+            }
+            $('div.post_title').after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('#contents_post > div.post > a  > img');
+    }, function (imgE) {
+        imgE.style = "width: 100%;height: 100%";
+    }).start();
+
+    injectBtns().domain('www.xgtaotu.com').removeAD(function () {
+        $('#divStayTopright').remove();
+    }).switchAggregationBtn(function () {
+        $('div.page').hide();
+    }, function () {
+        $('div.page').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/^\/(rentihtml\/zhaopian\/\d+\/\d+)/im);//http://www.xgtaotu.com/rentihtml/zhaopian/20200314/82031.html
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = '';
+                var pageId = match[1];
+                var suffixUrl = '.html';
+                var limitPageStr = $('p b a').eq(-2).text().replace(/[\]\[]/img, "").trim();
+                if (limitPageStr) {
+                    totalPageCnt = parseInt(limitPageStr);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = '';
+                    if (i == 1) {
+                        pageUrl = partPreUrl + pageId + suffixUrl;
                     } else {
-
+                        pageUrl = partPreUrl + pageId + '_' + i + suffixUrl;
                     }
+
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
                 }
             }
-        });
+            $('div h1').after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('p a > img');
+    }, function (imgE) {
+        imgE.style = "max-width: 100%;";
+    }).start();
 
-    commonObj.meet(
-        {
-            domain: 'www.aitaotu.com',
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            limitPage: 1,
-            removeAd: function () {
-                var id = setInterval(function () {
-                    $('#lgVshow').remove();
-                    $('div.gg1002').remove();
-                }, 100);
-            },
-            success: function () {
-                this.removeAd();
-                var match = currentPathname.match(/\/(.+?\/)(\d+)(?:_\d+)?\.html/m);
-                if (match !== null) {
-                    var partPreUrl = match[1];
-                    var pageId = match[2];
-                    var suffixUrl = '.html';
-                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
-                    var pageStr = $('div.photo > div.pages > ul > li:last-child > a').attr('href');
-                    log('pageStr:' + pageStr);
-                    if (pageStr) {
-                        var myregexp = /\/\w+\/(\d+)(?:_(\d+))?\.html/m;
-                        var match = myregexp.exec(pageStr);
-                        if (match != null) {
-                            this.limitPage = parseInt(match[2]);
-                            log('limitPage:' + this.limitPage);
-                            currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 1, this.limitPage, suffixUrl, currentHostname);
-                        } else {
+    injectBtns().domain('www.youzi4.cc').removeAD(function () {
 
-                        }
+    }).switchAggregationBtn(function () {
+        $('#picBody').hide();
+        $('div.page-tag').hide();
+    }, function () {
+        $('#picBody').show();
+        $('div.page-tag').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/^\/(\w+.*\/\d+)/im);//http://www.youzi4.cc/mm/19890/19890_1.html
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = '';
+                var pageId = match[1];
+                var suffixUrl = '.html';
+                var limitPageStr = $('div.page-tag> ul > div > div > a ').eq(-2).text().trim();
+                if (limitPageStr) {
+                    totalPageCnt = parseInt(limitPageStr);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = '';
+                    if (i == 1) {
+                        pageUrl = partPreUrl + pageId + suffixUrl;
                     } else {
-
+                        pageUrl = partPreUrl + pageId + '_' + i + suffixUrl;
                     }
+
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
                 }
             }
-        });
+            $('div.articleV4Desc').after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('#picBody p a img');
+    }, function (imgE) {
+        imgE.style = "max-width: 100%;";
+    }).start();
 
-    commonObj.meet(
-        {
-            domain: 'www.mzitu.com',
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            limitPage: 1,
-            success: function () {
-                var match = currentPathname.match(/\/(\d+)(?:\/\d+)?/m);
-                if (match !== null) {
-                    var partPreUrl = '';
-                    var pageId = match[1];
-                    var suffixUrl = '';
-                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
-                    var pageStr = $('div.pagenavi >a').last().prev().find('span').text().trim();
-                    log('pageStr:' + pageStr);
-                    if (pageStr) {
-                        this.limitPage = parseInt(pageStr);
-                        log('limitPage:' + this.limitPage);
-                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '/', 1, this.limitPage, suffixUrl, currentHostname);
+    injectBtns().domain('www.xiumeim.com').removeAD(function () {
+
+    }).switchAggregationBtn(function () {
+        $('div.gallary_wrap').hide();
+    }, function () {
+        $('div.gallary_wrap').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/^\/(photos\/\w+-\d+)/im);//http://www.xiumeim.com/photos/LUGirls-190942.html
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = '';
+                var pageId = match[1];
+                var suffixUrl = '.html';
+                var limitPageStr = $('div.paginator > span.count').text().trim();
+                var limitPageMatch = limitPageStr.match(/\(共(\d+)页\)/m);
+                if (limitPageMatch != null) {
+                    totalPageCnt = parseInt(limitPageMatch[1]);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = '';
+                    if (i == 1) {
+                        pageUrl = partPreUrl + pageId + suffixUrl;
                     } else {
-
+                        pageUrl = partPreUrl + pageId + '-' + i + suffixUrl;
                     }
+
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
                 }
             }
-        });
+            $('div.album_desc div.inline').after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('table > tbody > tr > td > img');
+    }, function (imgE) {
+        imgE.style = "max-width: 100%;";
+    }).start();
 
-    commonObj.meet(
-        {
-            domain: 'www.beautylegmm.com',
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            limitPage: 1,
-            success: function () {
-                var match = currentPathname.match(/^\/(\w+\/beautyleg-\d+\.html)/im);
-                if (match !== null) {
-                    var partPreUrl = '';
-                    var pageId = match[1];
-                    var suffixUrl = '';
-                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
-                    var pageStr = $('#contents_post > div.post > div > a:not(.next)').last().text().trim();
-                    log('pageStr:' + pageStr);
-                    if (pageStr) {
-                        this.limitPage = parseInt(pageStr);
-                        log('limitPage:' + this.limitPage);
-                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '?page=', 1, this.limitPage, suffixUrl, currentHostname);
+    injectBtns().domain('www.mm131.com').switchAggregationBtn(function () {
+        $('.content-pic').hide();
+        $('.content-page').hide();
+    }, function () {
+        $('.content-pic').show();
+        $('.content-page').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/^\/(\w+\/)(\d+)(?:_\d+)?\.html$/im);
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = match[1];
+                var pageId = match[2];
+                var suffixUrl = '.html';
+                var limitPageStr = $('span.page-ch:nth-child(1)').text();
+                var limitPageMatch = limitPageStr.match(/共(\d+)页/m);
+                if (limitPageMatch != null) {
+                    totalPageCnt = parseInt(limitPageMatch[1]);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = '';
+                    if (i == 1) {
+                        pageUrl = partPreUrl + pageId + suffixUrl;
                     } else {
-
+                        pageUrl = partPreUrl + pageId + '_' + i + suffixUrl;
                     }
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
                 }
             }
-        });
+            $('div.content-msg').after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('div.content-pic a img');
+    }, function (imgE) {
+        imgE.style = "width: 100%;height: 100%";
+    }).start();
 
-    commonObj.meet(
-        {
-            domain: 'www.meinv58.com',
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            limitPage: 1,
-            success: function () {
-                var match = currentPathname.match(/^\/(\w+\/\d+)/im);
-                if (match !== null) {
-                    var partPreUrl = '';
-                    var pageId = match[1];
-                    var suffixUrl = '';
-                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
-                    var pageStr = $('div.link_pages > a:last-child').last().prev().text().trim();
-                    log('pageStr:' + pageStr);
-                    if (pageStr) {
-                        this.limitPage = parseInt(pageStr);
-                        log('limitPage:' + this.limitPage);
-                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '/', 1, this.limitPage, suffixUrl, currentHostname);
-                    } else {
 
-                    }
+    injectBtns().domain('www.win4000.com').removeAD(function () {
+        setInterval(function () {
+            $('iframe').remove();
+        }, 100);
+    }).switchAggregationBtn(function () {
+        $('div.pic-meinv').hide();
+    }, function () {
+        $('div.pic-meinv').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/\/(\w+?\d+)(?:_\d+)?/m);
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = match[1];
+                var pageId = '';
+                var suffixUrl = '.html';
+                var limitPageStr = $('div.ptitle').text();
+                var limitPageMatch = limitPageStr.match(/（\d+\/(\d+)）/m);
+                if (limitPageMatch != null) {
+                    totalPageCnt = parseInt(limitPageMatch[1]);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = partPreUrl + pageId + '_' + i + suffixUrl;
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
                 }
             }
-        });
+            $('div.ptitle').after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('div.pic-meinv a  img');
+    }, function (imgE) {
+        imgE.style = "width: 100%;height: 100%";
+        var src = $(imgE).attr('url');
+        if (src) {
+            $(imgE).attr('src',src);
+        }
+    }).start();
 
-    commonObj.meet(
-        {
-            domain: 'www.xgtaotu.com',
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            limitPage: 1,
-            success: function () {
-                var match = currentPathname.match(/^\/(rentihtml\/zhaopian\/\d+\/\d+)/im);
-                if (match !== null) {
-                    var partPreUrl = '';
-                    var pageId = match[1];
-                    var suffixUrl = '.html';
-                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
-                    var pageStr = $('p b a').eq(-2).text().replace(/[\]\[]/img, "").trim();
-                    log('pageStr:' + pageStr);
-                    if (pageStr) {
-                        this.limitPage = parseInt(pageStr);
-                        log('limitPage:' + this.limitPage);
-                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 1, this.limitPage, suffixUrl, currentHostname);
-                    } else {
-
-                    }
-                }
-            }
-        });
-
-    commonObj.meet(
-        {
-            domain: 'www.xiuaa.com',
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            limitPage: 1,
-            success: function () {
-                var match = currentPathname.match(/^\/(\w+\/\d+)/im);
-                if (match !== null) {
-                    var partPreUrl = '';
-                    var pageId = match[1];
-                    var suffixUrl = '.html';
-                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
-                    var pageStr = $('#pager > ul > li:nth-child(1) > a').text().trim();
-                    log('pageStr:' + pageStr);
-                    if (pageStr) {
-                        this.limitPage = parseInt(pageStr)-1;
-                        log('limitPage:' + this.limitPage);
-                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 0, this.limitPage, suffixUrl, currentHostname);
-                    } else {
-
-                    }
-                }
-            }
-        });
-
-    commonObj.meet(
-        {
-            domain: 'www.youzi4.cc',
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            limitPage: 1,
-            success: function () {
-                var match = currentPathname.match(/^\/(\w+.*\/\d+)/im);
-                if (match !== null) {
-                    var partPreUrl = '';
-                    var pageId = match[1];
-                    var suffixUrl = '.html';
-                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
-                    var pageStr = $('div.page-tag> ul > div > div > a ').eq(-2).text().trim();
-                    log('pageStr:' + pageStr);
-                    if (pageStr) {
-                        this.limitPage = parseInt(pageStr)-1;
-                        log('limitPage:' + this.limitPage);
-                        currentWindowImpl(this.startUrl + partPreUrl + pageId + '_', 1, this.limitPage, suffixUrl, currentHostname);
-                    } else {
-
-                    }
-                }
-            }
-        });
-
-    commonObj.meet(
-        {
-            domain: 'www.xiumeim.com',
-            startUrl: currentProtocol + '//' + currentHostname + '/',
-            limitPage: 1,
-            success: function () {
-                var match = currentPathname.match(/^\/(photos\/\w+-\d+)/im);
-                if (match !== null) {
-                    var partPreUrl = '';
-                    var pageId = match[1];
-                    var suffixUrl = '.html';
-                    log(this.startUrl + partPreUrl + pageId + suffixUrl);
-                    var pageStr = $('div.paginator > span.count').text().trim();
-                    log('pageStr:' + pageStr);
-                    if (pageStr) {
-                        var myregexp = /\(共(\d+)页\)/m;
-                        var match = myregexp.exec(pageStr);
-                        if (match != null) {
-                            this.limitPage = parseInt(match[1]);
-                            log('limitPage:' + this.limitPage);
-                            currentWindowImpl(this.startUrl + partPreUrl + pageId + '-', 2, this.limitPage, suffixUrl, currentHostname);
-                        } else {
-
-                        }
-
-                    } else {
-
-                    }
-                }
-            }
-        });
-
-    if ('www.youtube.com' === currentHostname) {
+    if (false && 'www.youtube.com' === window.location.hostname) {
         var vId = "";
         var id = setInterval(function () {
             $('#player-unavailable').not('.hid').addClass('hid');
@@ -564,233 +987,6 @@ function switchVId(vId) {
     return false;
 }
 
-//热键
-function hotkeys() {
-    GM_registerMenuCommand("图片打包下载", packageAndDownload, "d");
-    $(document).keydown(function (e) {
-        if (e.ctrlKey && e.shiftKey) {
-            if (e.which == 76) {//L
-                log("触发快捷键");
-            }
-        }
-    });
-}
-
-function packageAndDownload() {
-    var zip = new JSZip();
-    var imgList = $('img[label="sl"]');
-    var length = imgList.length;
-    $.each(imgList, function (index, value) {
-        zip.file("readme.txt", "感谢使用selang提供的插件。欢迎进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy\n");
-        var img = zip.folder("images");
-        var imgSrc = $(value).attr('src');
-        {
-            if (blobCache[imgSrc]) {
-                img.file(index + ".jpg", blobCache[imgSrc], {base64: false});
-                length--;
-            } else {
-                if (!imgSrc.startsWith('blob:')) {
-                    Alpha_Script.obtainHtml({
-                        url: imgSrc,
-                        method: 'GET',
-                        headers: {
-                            "Accept": "application/*",
-                            "Referer": window.location.origin
-                        },
-                        responseType: 'blob',
-                        onload: function (response) {
-                            var responseHeaders = Alpha_Script.parseHeaders(response.responseHeaders);
-                            var contentType = responseHeaders['Content-Type'];
-                            if (!contentType) {
-                                contentType = "image/png";
-                            }
-                            var blob = new Blob([response.response], {type: contentType});
-                            blobCache[imgSrc] = blob;
-                            img.file(index + ".jpg", blobCache[imgSrc], {base64: false});
-                            length--;
-                        }
-                    });
-                } else {
-                    img.file(index + ".jpg", blobCache[blobUrlCache[imgSrc]], {base64: false});
-                    length--;
-                }
-            }
-        }
-    });
-    var id = setInterval(function () {
-        if (length == 0) {
-            clearInterval(id);
-            zip.generateAsync({type: "blob"})
-                .then(function (content) {
-                    saveAs(content, "PackageSL.zip");
-                });
-        }
-    }, 100);
-}
-
-function currentWindowImpl(preUrl, startIndex, limitPage, subfixUrl, currentHostname) {
-    injectAggregationRef(currentHostname);
-    switchAggregationBtn(preUrl, startIndex, limitPage, subfixUrl, currentHostname);
-    dependenceJQuery(window, bindBtn(function (e) {
-        switchAggregationBtn(preUrl, startIndex, limitPage, subfixUrl, currentHostname);
-    }));
-}
-
-//按钮切换
-function switchAggregationBtn(preUrl, startIndex, limitPage, suffixUrl, currentHostname) {
-    if ($('#injectaggregatBtn').val() === '聚合显示') {
-        $('#injectaggregatBtn').val('聚合隐藏');
-        collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname);
-        $('#c_container').show();
-
-        var hideObj = {
-            'www.lesmao.me': function () {
-                $('#thread-pic').hide();
-                $('#thread-page').hide();
-            },
-            'www.umei.cc': function () {
-                $('.ImageBody').hide();
-            },
-            'www.meitulu.com': function () {
-                $('div.content').hide();
-                $('body > center').hide();
-            },
-            'www.17786.com': function () {
-                $('div.img_box').hide();
-                $('div.wt-pagelist').hide();
-                $('div#picBody').hide();
-                $('.articleV2Page').hide();
-            },
-            'www.nvshens.com': function () {
-                $('div.ck-box-unit').hide();
-                $('div.photos').hide();
-                $('div#imgwrap').hide();
-            },
-            'm.nvshens.com': function () {
-                return this['www.nvshens.com'];
-            },
-            'www.24meinv.me': function () {
-                $('div.gtps.fl').hide();
-            },
-            'www.aitaotu.com': function () {
-                $('div.big-pic').hide();
-                $('div.pages').hide();
-            },
-            'www.mzitu.com': function () {
-                $('div.main-image').hide();
-                $('div.pagenavi').hide();
-            },
-            'www.beautylegmm.com': function () {
-                $('div.post').hide();
-                $('div.archives_page_bar').hide();
-            },
-            'www.meinv58.com': function () {
-                $('div.main-body').hide();
-                $('div.link_pages').hide();
-            },
-            'www.xgtaotu.com': function () {
-                $('body > div.pic').hide();
-                $('p b a').parent().parent().hide();
-            },
-            'www.xiuaa.com': function () {
-                $('#bigpic').hide();
-                $('#pager').hide();
-            },
-            'www.youzi4.cc': function () {
-                $('#picBody').hide();
-                $('div.page-tag').hide();
-            },
-            'www.xiumeim.com': function () {
-                $('div.gallary_wrap').hide();
-            }
-        };
-        hideObj[currentHostname]();
-    } else {
-        $('#injectaggregatBtn').val('聚合显示');
-        $('#c_container').hide();
-
-        var showObj = {
-            'www.lesmao.me': function () {
-                $('#thread-pic').show();
-                $('#thread-page').show();
-            },
-            'www.umei.cc': function () {
-                $('.ImageBody').show();
-            },
-            'www.meitulu.com': function () {
-                $('div.content').show();
-                $('body > center').show();
-            },
-            'www.17786.com': function () {
-                $('div.img_box').show();
-                $('div.wt-pagelist').show();
-
-                $('div#picBody').show();
-                $('.articleV2Page').show();
-            },
-            'www.nvshens.com': function () {
-                $('div.ck-box-unit').show();
-                $('div.photos').show();
-                $('div#imgwrap').show();
-            },
-            'm.nvshens.com': function () {
-                return this['www.nvshens.com'];
-            },
-            'www.24meinv.me': function () {
-                $('div.gtps.fl').show();
-            },
-            'www.aitaotu.com': function () {
-                $('div.big-pic').show();
-                $('div.pages').show();
-            },
-            'www.mzitu.com': function () {
-                $('div.main-image').show();
-                $('div.pagenavi').show();
-            },
-            'www.beautylegmm.com': function () {
-                $('div.post').show();
-                $('div.archives_page_bar').show();
-            },
-            'www.meinv58.com': function () {
-                $('div.main-body').show();
-                $('div.link_pages').show();
-            },
-            'www.xgtaotu.com': function () {
-                $('body > div.pic').show();
-                $('p b a').parent().parent().show();
-            },
-            'www.xiuaa.com': function () {
-                $('#bigpic').show();
-                $('#pager').show();
-            },
-            'www.youzi4.cc': function () {
-                $('#picBody').show();
-                $('div.page-tag').show();
-            },
-            'www.xiumeim.com': function () {
-                $('div.gallary_wrap').show();
-            }
-        };
-        showObj[currentHostname]();
-    }
-}
-
-//日志
-function log(c) {
-    if (false) {
-        console.log(c);
-    }
-}
-
-function err(c) {
-    if (false) {
-        console.error(c);
-    }
-}
-
-function priorityLog(c) {
-    console.log(c);
-}
 
 //注入JS：jquery
 function injectJs(e) {
@@ -816,301 +1012,4 @@ function dependenceJQuery(e, callback) {
             callback;
         }
     }, 100);
-}
-
-//收集图片，回调
-function collectPics(startIndex, preUrl, limitPage, suffixUrl, currentHostname) {
-    var id = setInterval(function () {
-        if ($) {
-            clearInterval(id);
-            var breakPageLoop = false;
-            log('limitPage::' + limitPage);
-            for (var i = startIndex; i <= limitPage; i++) {
-                //创建div去装各自
-                $('#c_container').append('<div id="c_' + i + '"></div>');
-                if (!breakPageLoop) {
-                    var lock = true;
-                    log(preUrl + i + suffixUrl);
-                    Alpha_Script.obtainHtml({
-                        url: preUrl + i + suffixUrl,
-                        headers: Alpha_Script.parseHeaders("Accept:image/webp,image/*,*/*;q=0.8\n" +
-                            "Accept-Encoding:gzip, deflate, sdch\n" +
-                            "Accept-Language:zh-CN,zh;q=0.8\n" +
-                            "Referer:" + window.location.href + "\n" +
-                            "User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
-                        ),
-                        method: 'GET',
-                        onload: function () {
-                            var _i = i;
-                            var parseObj = {
-                                'www.lesmao.me': function (doc) {
-                                    return $(doc).find('ul > li > img');
-                                },
-                                'www.umei.cc': function (doc) {
-                                    {//移除图片附属广告
-                                        $('div div div.ad-widget-imageplus-sticker').parent().parent().remove();
-                                    }
-                                    return $(doc).find('.ImageBody p img');
-                                },
-                                'www.meitulu.com': function (doc) {
-                                    {//http://www.meitulu.com广告遮挡层
-                                        $("a[id^='__tg_ciw_a__']").remove();
-                                        $("a[id^='__qdd_ciw_a__']").remove();
-                                        $('iframe').remove();//移除广告等无必要元素
-                                    }
-                                    return $(doc).find('div.content > center  > img');
-                                },
-                                'www.17786.com': function (doc) {
-                                    var imgObj = $(doc).find('img.IMG_show');
-                                    if (imgObj.length == 0) {
-                                        imgObj = $(doc).find('a#RightUrl img');
-                                    }
-                                    return imgObj;
-                                },
-                                'www.nvshens.com': function (doc) {
-                                    return $(doc).find('ul#hgallery img');
-                                },
-                                'm.nvshens.com': function (doc) {
-                                    return $(doc).find('div#imgwrap img');
-                                },
-                                'www.24meinv.me': function (doc) {
-                                    var imgObj = $(doc).find('div.gtps.fl img');
-                                    $(imgObj).each(function (index) {
-                                        // log(index + ": " + $(this).prop('outerHTML'));
-                                        var imgSrc = $(this).attr('src').replace(/http:\/\/\w+\.diercun\.com(.*?\/)m([\w.]+)/img, "http://img.diercun.com$1$2");
-                                        $(this).attr('src', imgSrc);
-                                    });
-                                    return imgObj;
-                                },
-                                '': function (doc) {
-
-                                    return;
-                                },
-                                'www.aitaotu.com': function (doc) {
-                                    return $(doc).find('#big-pic > p > a  > img');
-                                },
-                                'www.mzitu.com': function (doc) {
-                                    return $(doc).find('div.main-image > p > a > img');
-                                },
-                                'www.beautylegmm.com': function (doc) {
-                                    return $(doc).find('#contents_post > div.post > a  > img');
-                                },
-                                'www.meinv58.com': function (doc) {
-                                    return $(doc).find('div.main-body p img');
-                                },
-                                'www.xgtaotu.com': function (doc) {
-                                    return $(doc).find('p a > img');
-                                },
-                                'www.xiuaa.com': function (doc) {
-                                    return $(doc).find('#bigpic a img');
-                                },
-                                'www.youzi4.cc': function (doc) {
-                                    return $(doc).find('#picBody p a img');
-                                },
-                                'www.xiumeim.com': function (doc) {
-                                    return $(doc).find('table > tbody > tr > td > img');
-                                },
-                            };
-                            return function (response) {
-                                var html = response.responseText;
-                                // log(html);
-                                var parser = new DOMParser();
-                                var doc = parser.parseFromString(html, "text/html");
-                                // log(preUrl + _i + suffixUrl);
-                                var imgObj;
-
-                                imgObj = parseObj[currentHostname](doc);
-                                log(imgObj);
-                                var imgContainerCssSelector = '#c_' + _i;
-                                log(imgContainerCssSelector);
-                                var status = query($(imgContainerCssSelector), $(imgObj));
-                                if ('end page' === status) {
-                                    breakPageLoop = true;
-                                }
-                                lock = false;
-                            };
-                        }()
-                    });
-                } else {
-                    break;
-                }
-            }
-        }
-    }, 100);
-}
-
-//查询图片
-function query(objContainer, jqObj) {
-    jqObj.each(function (index) {
-        // log(index + ": " + $(this).prop('outerHTML'));
-        var imgSrc = $(this).attr('src');
-        if (imgSrc.endsWith('/k/1178/')) {
-            return 'end page';
-        } else {
-            // $(this)[0].style = "width: 100%;height: 100%";
-            $(this).attr('label', 'sl');
-            objContainer.append('<div>' + $(this).prop('outerHTML') + '</div>');
-        }
-    });
-}
-
-function injectAggregationRef(currentHostname) {
-    var injectComponent =
-        '<input id="captureBtn" type="button" value="截图并下载"/>' +
-        '<span>&nbsp;&nbsp;</span>' +
-        '<input id="packageBtn" type="button" value="打包下载聚合图片"/>' +
-        '<span>&nbsp;&nbsp;</span>' +
-        '<input id="injectaggregatBtn" type="button" value="聚合显示"/>';
-    var injectAggregateObj = {
-        'www.lesmao.me': function () {
-            $('.thread-tr').after(injectComponent);
-            $('#vt').append(injectComponent);
-        },
-        'www.umei.cc': function () {
-            if ($('.hr10')) {//http://www.umei.cc/weimeitupian/oumeitupian/20043_2.htm
-                $($('.hr10')[0]).after(injectComponent);
-                $('iframe').remove();//移除广告等无必要元素
-            }
-        },
-        'www.meitulu.com': function () {
-            if ($('div.bk3')) {
-                $('div.bk3').after(injectComponent);
-                {//http://www.meitulu.com广告遮挡层
-                    $("a[id^='__tg_ciw_a__']").remove();
-                    $("a[id^='__qdd_ciw_a__']").remove();
-                    $('iframe').remove();//移除广告等无必要元素
-                }
-            }
-        },
-        'www.17786.com': function () {
-            $('div.tsmaincont-desc').after(injectComponent);
-            $('div.articleV2Desc').after(injectComponent);
-        },
-        'www.nvshens.com': function () {
-            $('div[id^=mms]').remove();//移除广告等无必要元素
-            $('div#dinfo').after(injectComponent);
-        },
-        'm.nvshens.com': function () {
-            $('div#ddinfo').after(injectComponent);
-            $('div#ms1').next().remove();
-        },
-        'www.24meinv.me': function () {
-            $('div.hd1').after(injectComponent);
-            $('#hgg1').remove();
-        },
-        'www.aitaotu.com': function () {
-            $('div.tsmaincont-desc').after(injectComponent);
-        },
-        'www.mzitu.com': function () {
-            $('div.main-meta').after(injectComponent);
-        },
-        'www.beautylegmm.com': function () {
-            $('iframe').remove();//移除广告等无必要元素
-            setInterval(function () {
-                $('iframe').remove();//移除广告等无必要元素
-            }, 1000);
-            $('div.post_title').after(injectComponent);
-        },
-        'www.meinv58.com': function () {
-            $('iframe').remove();//移除广告等无必要元素
-            setInterval(function () {
-                $('iframe').remove();//移除广告等无必要元素
-            }, 1000);
-            $(' div.main-header > div').after(injectComponent);
-        },
-        'www.xgtaotu.com': function () {
-            $('#divStayTopright').remove();//移除广告等无必要元素
-
-            $('body > center').eq(1).after(injectComponent);
-        },
-        'www.xiuaa.com': function () {
-
-            $('#entry .postinfo').after(injectComponent);
-        },
-        'www.youzi4.cc': function () {
-
-            $('div.articleV4Desc').after(injectComponent);
-        },
-        'www.xiumeim.com': function () {
-
-            $('div.album_desc div.inline').after(injectComponent);
-        }
-    };
-    injectAggregateObj[currentHostname]();
-    $('#injectaggregatBtn').after('<div id="c_container"></div>');
-}
-
-
-function bindBtn(callback) {
-    $('#injectaggregatBtn').bind('click', callback);
-    $('#captureBtn').bind('click', function (e) {
-        var imgList = $('img[label="sl"]');
-        var length = imgList.length;
-        $.each(imgList, function (index, value) {
-            var imgSrc = $(value).attr('src');
-            {
-                if (blobCache[imgSrc]) {
-                    length--;
-                } else {
-                    if (!imgSrc.startsWith('blob:')) {
-                        Alpha_Script.obtainHtml({
-                            url: imgSrc,
-                            method: 'GET',
-                            headers: {
-                                "Accept": "application/*"
-                            },
-                            responseType: 'blob',
-                            onload: function (response) {
-                                var responseHeaders = Alpha_Script.parseHeaders(response.responseHeaders);
-                                var contentType = responseHeaders['Content-Type'];
-                                if (!contentType) {
-                                    contentType = "image/png";
-                                }
-                                var blob = new Blob([response.response], {type: contentType});
-                                blobCache[imgSrc] = blob;
-                                length--;
-                            }
-                        });
-                    }
-                }
-            }
-        });
-        var id = setInterval(function () {
-            if (length == 0) {
-                clearInterval(id);
-                var length2 = imgList.length;
-                $.each(imgList, function (index, value) {
-                    var imgSrc = $(value).attr('src');
-                    {
-                        if (!imgSrc.startsWith('blob:')) {
-                            if (blobCache[imgSrc]) {
-                                var objectURL = URL.createObjectURL(blobCache[imgSrc]);
-                                blobUrlCache[objectURL] = imgSrc;
-                                $(value).attr('src', objectURL);
-                                length2--;
-                            }
-                        } else {
-                            length2--;
-                        }
-                    }
-                });
-                var id2 = setInterval(function () {
-                    if (length2 == 0) {
-                        clearInterval(id2);
-                        domtoimage.toBlob($('#c_container').get(0))
-                            .then(function (blob) {
-                                saveAs(blob, "captureSL.png");
-                            })
-                            .catch(function (error) {
-                                err('截图太大不能保存!');
-                            });
-                    }
-                }, 100);
-
-            }
-        }, 100);
-    });
-    $('#packageBtn').bind('click', function (e) {
-        packageAndDownload();
-    });
 }
