@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      3.02
+// @version      3.03
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lsmpx\.com/
@@ -22,6 +22,7 @@
 // @include       /https?\:\/\/www\.7kmn\.com/
 // @include       /https?\:\/\/www\.mm131\.com/
 // @include       /https?\:\/\/www\.114tuku\.com/
+// @include       /https?\:\/\/www\.192tt\.com/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js
@@ -94,8 +95,8 @@ var Alpha_Script = {
     priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。');
     priorityLog('如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
     priorityLog('已实现：', '蕾丝猫(http://www.lsmpx.com)', '优美(http://www.umei.cc)', '美图录(http://www.meitulu.com)', '美女86(http://www.17786.com)', '宅男女神(http://www.nvshens.com)', '爱套图(http://www.aitaotu.com)', '妹子图(http://www.mzitu.com)');
-    priorityLog('\t\tBeautyleg腿模写真(http://www.beautylegmm.com)','性感套图(http://www.xgtaotu.com/)','秀美眉(http://www.xiumeim.com/)','优姿美女（http://www.youzi4.cc/)','秀美眉(http://www.xiumeim.com/)','美女图片(http://www.mm131.com)');
-    priorityLog('\t\t美桌(http://www.win4000.com/)', '114tuku(http://www.114tuku.com/)');
+    priorityLog('\t\tBeautyleg腿模写真(http://www.beautylegmm.com)', '性感套图(http://www.xgtaotu.com/)', '秀美眉(http://www.xiumeim.com/)', '优姿美女（http://www.youzi4.cc/)', '秀美眉(http://www.xiumeim.com/)', '美女图片(http://www.mm131.com)');
+    priorityLog('\t\t美桌(http://www.win4000.com/)', '114tuku(http://www.114tuku.com/)', '美女图片(https://www.192tt.com/)');
     priorityLog('未实现：');
 
     function injectBtns() {
@@ -952,7 +953,7 @@ var Alpha_Script = {
         imgE.style = "width: 100%;height: 100%";
         var src = $(imgE).attr('url');
         if (src) {
-            $(imgE).attr('src',src);
+            $(imgE).attr('src', src);
         }
     }).start();
 
@@ -995,6 +996,53 @@ var Alpha_Script = {
         return $(doc).find('div.content_body a img');
     }, function (imgE) {
         imgE.style = "width: 100%;";
+    }).start();
+
+    injectBtns().domain('www.192tt.com').removeAD(function () {
+        setInterval(function () {
+            $('iframe').remove();
+            $('div[class^=ad]').remove();
+        }, 100);
+    }).switchAggregationBtn(function () {
+        $('#p').hide();
+    }, function () {
+        $('#p').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/\/(\w+\/\w+\/\w+?)(?:_\d+)?\.html/m);//https://www.192tt.com/gq/ugirls/ugu349_2.html
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = match[1];
+                var pageId = '';
+                var suffixUrl = '.html';
+                var limitPageStr = $('h1').text();
+                var limitPageMatch = limitPageStr.match(/\(\d+\/(\d+)\)/m);
+                if (limitPageMatch != null) {
+                    totalPageCnt = parseInt(limitPageMatch[1]);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = '';
+                    if (i == 1) {
+                        pageUrl = partPreUrl + pageId + i + suffixUrl;
+                    } else {
+                        pageUrl = partPreUrl + pageId + '_' + i + suffixUrl;
+                    }
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
+                }
+            }
+            $('div.pictopline').after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('#p > center   img');
+    }, function (imgE) {
+        imgE.style = "width: 100%;";
+        var src = $(imgE).attr('lazysrc');
+        if (src) {
+            $(imgE).attr('src', src);
+        }
     }).start();
 
     if (false && 'www.youtube.com' === window.location.hostname) {
