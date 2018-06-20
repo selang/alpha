@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      3.04
+// @version      3.05
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lsmpx\.com/
@@ -1009,7 +1009,7 @@ var Alpha_Script = {
         $('#p').show();
     }).injectAggregationRef(function (injectComponent, pageUrls) {
         var currentPathname = window.location.pathname;
-        var match = currentPathname.match(/\/(\w+\/\w+\/\w+?)(?:_\d+)?\.html/m);//https://www.192tt.com/gq/ugirls/ugu349_2.html
+        var match = currentPathname.match(/\/(\w+(?:\/\w+)?\/\w+?)(?:_\d+)?\.html/m);//https://www.192tt.com/gq/ugirls/ugu349_2.html,https://www.192tt.com/meitu/81896.html
         if (match !== null) {
             {
                 var totalPageCnt = 1;
@@ -1025,7 +1025,7 @@ var Alpha_Script = {
                 for (var i = 1; i <= totalPageCnt; i++) {
                     var pageUrl = '';
                     if (i == 1) {
-                        pageUrl = partPreUrl + pageId + i + suffixUrl;
+                        pageUrl = partPreUrl + pageId + suffixUrl;
                     } else {
                         pageUrl = partPreUrl + pageId + '_' + i + suffixUrl;
                     }
