@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      3.05
+// @version      3.06
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lsmpx\.com/
@@ -16,10 +16,11 @@
 // @include       /https?\:\/\/www\.beautylegmm\.com/
 // @include       /https?\:\/\/www\.rosiyy\.com/
 // @include       /https?\:\/\/www\.xgtaotu\.com/
+// @include       /https?\:\/\/www\.xgtutu\.com/
 // @include       /https?\:\/\/www\.youzi4\.cc/
 // @include       /https?\:\/\/www\.xiumeim\.com/
+// @include       /https?\:\/\/www\.xmeim\.com/
 // @include       /https?\:\/\/www\.win4000\.com/
-// @include       /https?\:\/\/www\.7kmn\.com/
 // @include       /https?\:\/\/www\.mm131\.com/
 // @include       /https?\:\/\/www\.114tuku\.com/
 // @include       /https?\:\/\/www\.192tt\.com/
@@ -95,7 +96,7 @@ var Alpha_Script = {
     priorityLog('看到这里，你肯定是个老司机了。欢迎老司机进群：455809302交流。一起玩。');
     priorityLog('如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
     priorityLog('已实现：', '蕾丝猫(http://www.lsmpx.com)', '优美(http://www.umei.cc)', '美图录(http://www.meitulu.com)', '美女86(http://www.17786.com)', '宅男女神(http://www.nvshens.com)', '爱套图(http://www.aitaotu.com)', '妹子图(http://www.mzitu.com)');
-    priorityLog('\t\tBeautyleg腿模写真(http://www.beautylegmm.com)', '性感套图(http://www.xgtaotu.com/)', '秀美眉(http://www.xiumeim.com/)', '优姿美女（http://www.youzi4.cc/)', '秀美眉(http://www.xiumeim.com/)', '美女图片(http://www.mm131.com)');
+    priorityLog('\t\tBeautyleg腿模写真(http://www.beautylegmm.com)', '性感套图(http://www.xgtutu.com/)', '秀美眉(http://www.xmeim.com/)', '优姿美女（http://www.youzi4.cc/)', '美女图片(http://www.mm131.com)');
     priorityLog('\t\t美桌(http://www.win4000.com/)', '114tuku(http://www.114tuku.com/)', '美女图片(https://www.192tt.com/)');
     priorityLog('未实现：');
 
@@ -427,17 +428,13 @@ var Alpha_Script = {
         $('#thread-page').show();
     }).injectAggregationRef(function (injectComponent, pageUrls) {
         var match = window.location.pathname.match(/^\/(thread-\d+-)(\d+)(-\d+\.html)$/im);
+        debugger
         if (match !== null) {
             {
-                var totalPageCnt = 1;
+                var totalPageCnt = 5;
                 var partPreUrl = match[1];
                 var suffixUrl = match[3];
-                var limitPageStr = $('#thread-page > div > div > label > span').text();
-                var limitPageMatch = limitPageStr.match(/(\d+)/i);
-                if (limitPageMatch != null) {
-                    totalPageCnt = parseInt(limitPageMatch[1]);
-                    log('totalPageCnt', totalPageCnt);
-                }
+
                 for (var i = 1; i <= totalPageCnt; i++) {
                     var pageUrl = partPreUrl + i + suffixUrl;
                     log('push pageUrl:', pageUrl);
@@ -752,7 +749,7 @@ var Alpha_Script = {
         imgE.style = "width: 100%;height: 100%";
     }).start();
 
-    injectBtns().domain('www.xgtaotu.com').removeAD(function () {
+    injectBtns().domain(['www.xgtaotu.com', 'www.xgtutu.com']).removeAD(function () {
         $('#divStayTopright').remove();
     }).switchAggregationBtn(function () {
         $('div.page').hide();
@@ -760,7 +757,7 @@ var Alpha_Script = {
         $('div.page').show();
     }).injectAggregationRef(function (injectComponent, pageUrls) {
         var currentPathname = window.location.pathname;
-        var match = currentPathname.match(/^\/(rentihtml\/zhaopian\/\d+\/\d+)/im);//http://www.xgtaotu.com/rentihtml/zhaopian/20200314/82031.html
+        var match = currentPathname.match(/^\/(rentihtml\/zhaopian\/\d+\/\d+)/im);//http://www.xgtutu.com/rentihtml/zhaopian/20200314/82031.html
         if (match !== null) {
             {
                 var totalPageCnt = 1;
@@ -834,7 +831,7 @@ var Alpha_Script = {
         imgE.style = "max-width: 100%;";
     }).start();
 
-    injectBtns().domain('www.xiumeim.com').removeAD(function () {
+    injectBtns().domain(['www.xiumeim.com', 'www.xmeim.com']).removeAD(function () {
 
     }).switchAggregationBtn(function () {
         $('div.gallary_wrap').hide();
