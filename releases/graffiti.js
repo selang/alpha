@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      3.06
+// @version      3.07
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lsmpx\.com/
+// @include       /https?\:\/\/www\.lsm\.me/
 // @include       /https?\:\/\/www\.umei\.cc/
 // @include       /https?\:\/\/www\.meitulu\.com/
 // @include       /https?\:\/\/www\.17786\.com/
@@ -24,6 +25,10 @@
 // @include       /https?\:\/\/www\.mm131\.com/
 // @include       /https?\:\/\/www\.114tuku\.com/
 // @include       /https?\:\/\/www\.192tt\.com/
+// @include       /https?\:\/\/www\.meituri\.com/
+// @include       /https?\:\/\/www\.xiuren\.org/
+// @include       /https?\:\/\/www\.juemei\.com/
+// @include       /https?\:\/\/www\.tuao81\.top/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js
@@ -99,6 +104,7 @@ var Alpha_Script = {
     priorityLog('\t\tBeautyleg腿模写真(http://www.beautylegmm.com)', '性感套图(http://www.xgtutu.com/)', '秀美眉(http://www.xmeim.com/)', '优姿美女（http://www.youzi4.cc/)', '美女图片(http://www.mm131.com)');
     priorityLog('\t\t美桌(http://www.win4000.com/)', '114tuku(http://www.114tuku.com/)', '美女图片(https://www.192tt.com/)');
     priorityLog('未实现：');
+    priorityLog('\t\t美图(https://www.meituri.com/)', '秀人(http://www.xiuren.org/)');
 
     function injectBtns() {
         var blobCache = {};
@@ -420,7 +426,7 @@ var Alpha_Script = {
         }
     }
 
-    injectBtns().domain('www.lsmpx.com').switchAggregationBtn(function () {
+    injectBtns().domain(['www.lsmpx.com', 'www.lsm.me']).switchAggregationBtn(function () {
         $('#thread-pic').hide();
         $('#thread-page').hide();
     }, function () {
@@ -469,7 +475,12 @@ var Alpha_Script = {
                     log('totalPageCnt', totalPageCnt);
                 }
                 for (var i = 1; i <= totalPageCnt; i++) {
-                    var pageUrl = partPreUrl + pageId + '_' + i + suffixUrl;
+                    var pageUrl = '';
+                    if (i == 1) {
+                        pageUrl = partPreUrl + pageId + suffixUrl;
+                    } else {
+                        pageUrl = partPreUrl + pageId + '_' + i + suffixUrl;
+                    }
                     log('push pageUrl:', pageUrl);
                     pageUrls.push(pageUrl);
                 }
@@ -613,8 +624,8 @@ var Alpha_Script = {
                 var limitPageMatch = limitPageStr.match(/(\d+)张照片/im);
                 if (limitPageMatch != null) {
                     var totalPics = parseInt(limitPageMatch[1]);
-                    var number = totalPics % 5;
-                    totalPageCnt = Math.floor(totalPics / 5);
+                    var number = totalPics % 3;
+                    totalPageCnt = Math.floor(totalPics / 3);
                     if (number > 0) {
                         totalPageCnt = totalPageCnt + 1;
                     }
