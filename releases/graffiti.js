@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      3.07
+// @version      3.08
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lsmpx\.com/
@@ -25,6 +25,7 @@
 // @include       /https?\:\/\/www\.mm131\.com/
 // @include       /https?\:\/\/www\.114tuku\.com/
 // @include       /https?\:\/\/www\.192tt\.com/
+// @include       /https?\:\/\/www\.192tb\.com/
 // @include       /https?\:\/\/www\.meituri\.com/
 // @include       /https?\:\/\/www\.xiuren\.org/
 // @include       /https?\:\/\/www\.juemei\.com/
@@ -1006,7 +1007,7 @@ var Alpha_Script = {
         imgE.style = "width: 100%;";
     }).start();
 
-    injectBtns().domain('www.192tt.com').removeAD(function () {
+    injectBtns().domain(['www.192tt.com', 'www.192tb.com']).removeAD(function () {
         setInterval(function () {
             $('iframe').remove();
             $('div[class^=ad]').remove();
@@ -1052,6 +1053,71 @@ var Alpha_Script = {
             $(imgE).removeAttr('lazysrc');
             $(imgE).attr('src', src);
         }
+    }).start();
+
+    injectBtns().domain('www.xiuren.org').removeAD(function () {
+        setInterval(function () {
+            $('iframe').remove();
+        }, 100);
+    }).switchAggregationBtn(function () {
+        $('div.post').hide();
+    }, function () {
+        $('div.post').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/^\/([\w-]+\.html)\b/im);
+        if (match !== null) {
+            {
+                pageUrls.push(window.location.pathname.substr(1));
+            }
+            $('#title').after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        var clone = $(doc).find('div.post span > a').clone();
+        return $(clone).find('img');
+    }, function (imgE) {
+        var src = $(imgE).parent().attr('href');
+        $(imgE).attr('src', src);
+        imgE.style = "width: 100%;height: 100%";
+    }).start();
+
+    injectBtns().domain('www.tuao81.top').removeAD(function () {
+        setInterval(function () {
+            $('iframe').remove();
+            $('#v_ads > img').parent().parent().remove();
+        }, 100);
+    }).switchAggregationBtn(function () {
+        $('div.entry').hide();
+    }, function () {
+        $('div.entry').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/\/(post\/\d+.html)\b/i);
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = match[1];
+                var pageId = '';
+                var suffixUrl = '';
+                var limitPageStr = '';
+                var text = $('#dm-fy li').last().text();
+                if ('下一頁' == text) {
+                    limitPageStr = $('#dm-fy li').last().prev().text();
+                }
+                if (limitPageStr != '') {
+                    totalPageCnt = parseInt(limitPageStr);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = partPreUrl + pageId + suffixUrl + '?page=' + i;
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
+                }
+            }
+            $('div.postmeta').after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('div.entry > p > a > img');
     }).start();
 
     if (false && 'www.youtube.com' === window.location.hostname) {
