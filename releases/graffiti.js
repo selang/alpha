@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      3.08
+// @version      3.09
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lsmpx\.com/
@@ -30,6 +30,7 @@
 // @include       /https?\:\/\/www\.xiuren\.org/
 // @include       /https?\:\/\/www\.juemei\.com/
 // @include       /https?\:\/\/www\.tuao81\.top/
+// @include       /https?\:\/\/(www\.)?rosim\.cc/
 // @require       https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js
 // @require       https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js
@@ -104,8 +105,9 @@ var Alpha_Script = {
     priorityLog('已实现：', '蕾丝猫(http://www.lsmpx.com)', '优美(http://www.umei.cc)', '美图录(http://www.meitulu.com)', '美女86(http://www.17786.com)', '宅男女神(http://www.nvshens.com)', '爱套图(http://www.aitaotu.com)', '妹子图(http://www.mzitu.com)');
     priorityLog('\t\tBeautyleg腿模写真(http://www.beautylegmm.com)', '性感套图(http://www.xgtutu.com/)', '秀美眉(http://www.xmeim.com/)', '优姿美女（http://www.youzi4.cc/)', '美女图片(http://www.mm131.com)');
     priorityLog('\t\t美桌(http://www.win4000.com/)', '114tuku(http://www.114tuku.com/)', '美女图片(https://www.192tt.com/)');
+    priorityLog('\t\t......等');
     priorityLog('未实现：');
-    priorityLog('\t\t美图(https://www.meituri.com/)', '秀人(http://www.xiuren.org/)');
+    priorityLog('\t\t绝美网(https://www.juemei.com/)');
 
     function injectBtns() {
         var blobCache = {};
@@ -1055,6 +1057,56 @@ var Alpha_Script = {
         }
     }).start();
 
+    injectBtns().domain('www.meituri.com').removeAD(function () {
+        setInterval(function () {
+            $('iframe').remove();
+            $('div.weixin').remove();
+            $('div[id^=__jclm_]').remove();
+            $('center>a').parent().remove();
+        }, 200);
+    }).switchAggregationBtn(function () {
+        $('#pages').hide();
+        $('body > div.content').hide();
+    }, function () {
+        $('#pages').show();
+        $('body > div.content').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/^\/(a\/\d+\/)(\d+\.html)?/im);
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = match[1];
+                var pageId = '';
+                var suffixUrl = '';
+                var limitPageStr = '';
+                var text = $('#pages > a').last().text();
+                if ('下一页' == text) {
+                    limitPageStr = $('#pages > a').last().prev().text();
+                }
+                if (limitPageStr != '') {
+                    totalPageCnt = parseInt(limitPageStr);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = '';
+                    if (i == 1) {
+                        pageUrl = partPreUrl;
+                    } else {
+                        pageUrl = partPreUrl + pageId + suffixUrl + i + '.html';
+                    }
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
+                }
+
+
+            }
+            $('div.tuji').append(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('div.content > img');
+    }).start();
+
     injectBtns().domain('www.xiuren.org').removeAD(function () {
         setInterval(function () {
             $('iframe').remove();
@@ -1118,6 +1170,40 @@ var Alpha_Script = {
         }
     }).collectPics(function (doc) {
         return $(doc).find('div.entry > p > a > img');
+    }).start();
+
+    injectBtns().domain(['rosim.cc', 'www.rosim.cc']).removeAD(function () {
+        setInterval(function () {
+            $('iframe').remove();
+        }, 100);
+    }).switchAggregationBtn(function () {
+        $('div.container>h4').parent().find('div.col-xs-12:eq(2)').hide();
+    }, function () {
+        $('div.container>h4').parent().find('div.col-xs-12:eq(2)').show();
+    }).injectAggregationRef(function (injectComponent, pageUrls) {
+        var currentPathname = window.location.pathname;
+        var match = currentPathname.match(/^\/(item-detail-\d+)(?:-\d+)?.html/im);
+        if (match !== null) {
+            {
+                var totalPageCnt = 1;
+                var partPreUrl = match[1];
+                var pageId = '';
+                var suffixUrl = '';
+                var limitPageStr = $('ul.pagination > li').last().find('a').attr('name');
+                if (limitPageStr != '') {
+                    totalPageCnt = parseInt(limitPageStr);
+                    log('totalPageCnt', totalPageCnt);
+                }
+                for (var i = 1; i <= totalPageCnt; i++) {
+                    var pageUrl = partPreUrl + pageId + suffixUrl + '-' + i + '.html';
+                    log('push pageUrl:', pageUrl);
+                    pageUrls.push(pageUrl);
+                }
+            }
+            $('div.container>h4').next().after(injectComponent);
+        }
+    }).collectPics(function (doc) {
+        return $(doc).find('div.col-xs-12> img.img-responsive ');
     }).start();
 
     if (false && 'www.youtube.com' === window.location.hostname) {
