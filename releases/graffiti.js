@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      3.09
+// @version      4.01
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lsmpx\.com/
@@ -110,16 +110,18 @@ var Alpha_Script = {
     priorityLog('\t\t绝美网(https://www.juemei.com/)');
 
     function injectBtns() {
-        var blobCache = {};
-        var blobUrlCache = {};
 
         var pageUrls = [];
-        var injectComponent =
-            '<input id="captureBtn" type="button" class="sl-btn" value="截图并下载"/>' +
-            '<span>&nbsp;&nbsp;</span>' +
-            '<input id="packageBtn" type="button" class="sl-btn" value="打包下载聚合图片"/>' +
-            '<span>&nbsp;&nbsp;</span>' +
-            '<input id="injectaggregatBtn" type="button" class="sl-btn" value="聚合显示"/>';
+
+        // var myHttps = "http://127.0.0.1/static/imageAggregation";
+        var myHttps = "https://cmsv1.findmd5.com/static/imageAggregation";
+        var iframeHtml = '<iframe id="injectIframe_imageAggregation"\n' +
+            '    title="聚合图片嵌入框"\n' +
+            '    style="height: 40px;width: 100%;background: white;overflow:hidden;border:none"\n' +
+            '    src="' + myHttps + '/aggregation.html">\n' +
+            '</iframe>\n';
+        var injectComponent = iframeHtml;
+
         var domain = '';
         var hostName = window.location.hostname;
         var protocol = window.location.protocol;
@@ -127,67 +129,121 @@ var Alpha_Script = {
         var injectAggregationRef = null;
         var switchAggregationBtn = null;
         var collectPics = null;
+        var aggregationOnline = false;
         var switchAggregationBtnTemplateFunc = function (aggregationDispayFunc, aggregationDispayNoneFunc) {
-            if ($('#injectaggregatBtn').val() === '聚合显示') {
-                $('#injectaggregatBtn').val('聚合隐藏');
-                $('#c_container').show();
-                aggregationDispayFunc();
-            } else {
-                $('#injectaggregatBtn').val('聚合显示');
-                $('#c_container').hide();
-                aggregationDispayNoneFunc();
-            }
+            aggregationDispayFunc();
+            (function () {
+                window.top.addEventListener("message", receiveMessage, false);
+                var aggregationOnlineCheckId = setInterval(function () {
+                    POST_2_IFRAME({
+                        tag: 'online'
+                    });
+                    log('检查聚合iframe是否加载成功中....');
+                }, 100);
+
+                function receiveMessage(event) {
+                    var dt = event.data;
+                    var data = dt.data;
+                    if (!dt.tag) {
+                        return;
+                    }
+                    if ("聚合切换" == dt.tag) {
+                        var aggregationBtnTxt = data.aggregationBtnTxt;
+                        if (aggregationBtnTxt === '聚合显示') {
+                            $('#c_container').show();
+                            aggregationDispayNoneFunc();
+                            $('#injectIframe_imageAggregation').css('height', '40px');
+                        } else {
+                            $('#c_container').hide();
+                            aggregationDispayFunc();
+                            $('#injectIframe_imageAggregation').css('width', data.iframeWidth);
+                            $('#injectIframe_imageAggregation').css('height', data.iframeHeight);
+                        }
+                    } else if ("back_online" == dt.tag) {
+                        clearInterval(aggregationOnlineCheckId);
+                        log('聚合iframe加载成功');
+                        aggregationOnline = true;
+                    } else if ("heightChange" == dt.tag) {
+                        $('#injectIframe_imageAggregation').css('width', data.iframeWidth);
+                        $('#injectIframe_imageAggregation').css('height', data.iframeHeight);
+                    }
+                }
+
+
+            })();
+
         };
         var collectPicsTemplateFunc = function (parseImgsFunc, imgStyleFunc) {
             var id = setInterval(function () {
                 if ($) {
                     clearInterval(id);
                     var breakPageLoop = false;
-                    for (var i = 0, len = pageUrls.length; i < len; i++) {
-                        //创建div去装各自
-                        $('#c_container').append('<div id="c_' + i + '"></div>');
-                        if (!breakPageLoop) {
-                            var pageUrl = startUrl + pageUrls[i];
-                            Alpha_Script.obtainHtml({
-                                url: pageUrl,
-                                headers: Alpha_Script.parseHeaders("Accept:image/webp,image/*,*/*;q=0.8\n" +
-                                    "Accept-Encoding:gzip, deflate, sdch\n" +
-                                    "Accept-Language:zh-CN,zh;q=0.8\n" +
-                                    "Referer:" + window.location.href + "\n" +
-                                    "User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
-                                ),
-                                method: 'GET',
-                                onload: function () {
-                                    var _i = i;
-                                    var _pageUrl = pageUrl;
-                                    return function (response) {
-                                        log('response pageUrl:', _pageUrl);
-                                        if (response && response.status && response.status >= 200 && response.status < 300) {
-                                            var html = response.responseText;
-                                            // log('html==>',html);
-                                            var parser = new DOMParser();
-                                            var doc = parser.parseFromString(html, "text/html");
-                                            var imgObj = parseImgsFunc(doc);
-                                            var imgContainerCssSelector = '#c_' + _i;
-                                            log(imgContainerCssSelector);
-                                            $(imgObj).each(function (index) {
-                                                log(index, ':', $(this).prop('outerHTML'));
-                                                if (imgStyleFunc) {
-                                                    imgStyleFunc($(this)[0]);
-                                                } else {
-                                                    $(this)[0].style = "width: 100%;height: 100%";
-                                                }
-                                                $(this).attr('label', 'sl');
-                                                $(imgContainerCssSelector).append('<div class="sl-c-pic">' + $(this).prop('outerHTML') + '</div>');
-                                            });
-                                        }
-                                    };
-                                }()
+                    var tempIntervalId = setInterval(function () {
+                        if (aggregationOnline) {
+                            clearInterval(tempIntervalId);
+                            POST_2_IFRAME({
+                                tag: '创建div去装各自',
+                                data: {
+                                    len: pageUrls.length
+                                }
                             });
-                        } else {
-                            break;
+                            for (var i = 0, len = pageUrls.length; i < len; i++) {
+                                //创建div去装各自
+                                $('#c_container').append('<div id="c_' + i + '"></div>');
+                                if (!breakPageLoop) {
+                                    var pageUrl = startUrl + pageUrls[i];
+                                    Alpha_Script.obtainHtml({
+                                        url: pageUrl,
+                                        headers: Alpha_Script.parseHeaders("Accept:image/webp,image/*,*/*;q=0.8\n" +
+                                            "Accept-Encoding:gzip, deflate, sdch\n" +
+                                            "Accept-Language:zh-CN,zh;q=0.8\n" +
+                                            "Referer:" + window.location.href + "\n" +
+                                            "User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+                                        ),
+                                        method: 'GET',
+                                        onload: function () {
+                                            var _i = i;
+                                            var _pageUrl = pageUrl;
+                                            return function (response) {
+                                                log('response pageUrl:', _pageUrl);
+                                                if (response && response.status && response.status >= 200 && response.status < 300) {
+                                                    var html = response.responseText;
+                                                    // log('html==>',html);
+                                                    var parser = new DOMParser();
+                                                    var doc = parser.parseFromString(html, "text/html");
+                                                    var imgObj = parseImgsFunc(doc);
+                                                    var imgContainerCssSelector = '#c_' + _i;
+                                                    log(imgContainerCssSelector);
+                                                    $(imgObj).each(function (index) {
+                                                        log(index, ':', $(this).prop('outerHTML'));
+                                                        if (imgStyleFunc) {
+                                                            imgStyleFunc($(this)[0]);
+                                                        } else {
+                                                            $(this)[0].style = "width: 100%;height: 100%";
+                                                        }
+                                                        $(this).attr('label', 'sl');
+                                                        var picNode = '<div class="sl-c-pic">' + $(this).prop('outerHTML') + '</div>';
+                                                        downloadImg2Blob($(this).attr('src'), function (imgBlob) {
+                                                            POST_2_IFRAME({
+                                                                tag: '装各自',
+                                                                data: {
+                                                                    selector: imgContainerCssSelector,
+                                                                    imgBlob: imgBlob
+                                                                }
+                                                            });
+                                                        });
+                                                        $(imgContainerCssSelector).append(picNode);
+                                                    });
+                                                }
+                                            };
+                                        }()
+                                    });
+                                } else {
+                                    break;
+                                }
+                            }
                         }
-                    }
+                    }, 200);
                 }
             }, 100);
         };
@@ -216,140 +272,9 @@ var Alpha_Script = {
         };
         var removeAD = null;
 
-        function packageAndDownload() {
-            var zip = new JSZip();
-            var imgList = $('img[label="sl"]');
-            var length = imgList.length;
-            $.each(imgList, function (index, value) {
-                zip.file("readme.txt", "感谢使用selang提供的插件。欢迎进群：455809302交流。一起玩。\r\n如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy\n");
-                var img = zip.folder("images");
-                var imgSrc = $(value).attr('src');
-                {
-                    if (blobCache[imgSrc]) {
-                        img.file(index + ".jpg", blobCache[imgSrc], {base64: false});
-                        length--;
-                    } else {
-                        if (!imgSrc.startsWith('blob:')) {
-                            Alpha_Script.obtainHtml({
-                                url: imgSrc,
-                                method: 'GET',
-                                headers: {
-                                    "Accept": "application/*",
-                                    "Referer": window.location.origin
-                                },
-                                responseType: 'blob',
-                                onload: function (response) {
-                                    var responseHeaders = Alpha_Script.parseHeaders(response.responseHeaders);
-                                    var contentType = responseHeaders['Content-Type'];
-                                    if (!contentType) {
-                                        contentType = "image/png";
-                                    }
-                                    var blob = new Blob([response.response], {type: contentType});
-                                    blobCache[imgSrc] = blob;
-                                    img.file(index + ".jpg", blobCache[imgSrc], {base64: false});
-                                    length--;
-                                }
-                            });
-                        } else {
-                            img.file(index + ".jpg", blobCache[blobUrlCache[imgSrc]], {base64: false});
-                            length--;
-                        }
-                    }
-                }
-            });
-            var id = setInterval(function () {
-                if (length == 0) {
-                    clearInterval(id);
-                    zip.generateAsync({type: "blob"})
-                        .then(function (content) {
-                            saveAs(content, "PackageSL.zip");
-                        });
-                }
-            }, 100);
-        }
-
-        function bindBtn(callback) {
-            $('#injectaggregatBtn').bind('click', callback);
-            $('#captureBtn').bind('click', function (e) {
-                var imgList = $('img[label="sl"]');
-                var length = imgList.length;
-                $.each(imgList, function (index, value) {
-                    var imgSrc = $(value).attr('src');
-                    {
-                        if (blobCache[imgSrc]) {
-                            length--;
-                        } else {
-                            if (!imgSrc.startsWith('blob:')) {
-                                Alpha_Script.obtainHtml({
-                                    url: imgSrc,
-                                    method: 'GET',
-                                    headers: {
-                                        "Accept": "application/*"
-                                    },
-                                    responseType: 'blob',
-                                    onload: function (response) {
-                                        var responseHeaders = Alpha_Script.parseHeaders(response.responseHeaders);
-                                        var contentType = responseHeaders['Content-Type'];
-                                        if (!contentType) {
-                                            contentType = "image/png";
-                                        }
-                                        var blob = new Blob([response.response], {type: contentType});
-                                        blobCache[imgSrc] = blob;
-                                        length--;
-                                    }
-                                });
-                            }
-                        }
-                    }
-                });
-                var id = setInterval(function () {
-                    if (length == 0) {
-                        clearInterval(id);
-                        var length2 = imgList.length;
-                        $.each(imgList, function (index, value) {
-                            var imgSrc = $(value).attr('src');
-                            {
-                                if (!imgSrc.startsWith('blob:')) {
-                                    if (blobCache[imgSrc]) {
-                                        var objectURL = URL.createObjectURL(blobCache[imgSrc]);
-                                        blobUrlCache[objectURL] = imgSrc;
-                                        $(value).attr('src', objectURL);
-                                        length2--;
-                                    }
-                                } else {
-                                    length2--;
-                                }
-                            }
-                        });
-                        var id2 = setInterval(function () {
-                            if (length2 == 0) {
-                                clearInterval(id2);
-                                var cContainner = $('#c_container').get(0);
-                                domtoimage.toBlob(cContainner)
-                                    .then(function (blob) {
-                                        if (blob) {
-                                            saveAs(blob, "captureSL.png");
-                                        } else {
-                                            err('截图太大不能保存!');
-                                        }
-                                    })
-                                    .catch(function (error) {
-                                        err('截图太大不能保存!');
-                                    });
-                            }
-                        }, 100);
-
-                    }
-                }, 100);
-            });
-            $('#packageBtn').bind('click', function (e) {
-                packageAndDownload();
-            });
-        };
-
         //热键
         function hotkeys() {
-            GM_registerMenuCommand("图片打包下载", packageAndDownload, "d");
+            // GM_registerMenuCommand("图片打包下载", packageAndDownload, "d");
             $(document).keydown(function (e) {
                 if (e.ctrlKey && e.shiftKey) {
                     if (e.which == 76) {//L
@@ -396,6 +321,10 @@ var Alpha_Script = {
                 }
                 return this;
             },
+            send2Iframe: function () {
+
+            }
+            ,
             start: function () {
                 //1、匹配当前hostName
                 //2、注入操作界面
@@ -416,11 +345,6 @@ var Alpha_Script = {
                                 hotkeys();
                             }
                         }
-                        bindBtn(function () {
-                            if (switchAggregationBtn) {
-                                switchAggregationBtn();
-                            }
-                        });
                     }
                 } else {
 
@@ -437,7 +361,6 @@ var Alpha_Script = {
         $('#thread-page').show();
     }).injectAggregationRef(function (injectComponent, pageUrls) {
         var match = window.location.pathname.match(/^\/(thread-\d+-)(\d+)(-\d+\.html)$/im);
-        debugger
         if (match !== null) {
             {
                 var totalPageCnt = 5;
@@ -499,7 +422,7 @@ var Alpha_Script = {
     injectBtns().domain('www.meitulu.com').removeAD(function () {
         $("a[id^='__tg_ciw_a__']").remove();
         $("a[id^='__qdd_ciw_a__']").remove();
-        $('iframe').remove();//移除广告等无必要元素
+        removeFrameExcludeInjectIframe_imageAggregationFrame();//移除广告等无必要元素
     }).switchAggregationBtn(function () {
         $('div.content').hide();
         $('body > center').hide();
@@ -727,7 +650,7 @@ var Alpha_Script = {
 
     injectBtns().domain('www.beautylegmm.com').removeAD(function () {
         setInterval(function () {
-            $('iframe').remove();
+            removeFrameExcludeInjectIframe_imageAggregationFrame();
         }, 100);
     }).switchAggregationBtn(function () {
         $('div.post').hide();
@@ -929,7 +852,7 @@ var Alpha_Script = {
 
     injectBtns().domain('www.win4000.com').removeAD(function () {
         setInterval(function () {
-            $('iframe').remove();
+            removeFrameExcludeInjectIframe_imageAggregationFrame();
         }, 100);
     }).switchAggregationBtn(function () {
         $('div.pic-meinv').hide();
@@ -970,7 +893,7 @@ var Alpha_Script = {
 
     injectBtns().domain('www.114tuku.com').removeAD(function () {
         setInterval(function () {
-            $('iframe').remove();
+            removeFrameExcludeInjectIframe_imageAggregationFrame();
             $('div[baidu_imageplus_sensitive_judge="true"]').remove();
         }, 100);
     }).switchAggregationBtn(function () {
@@ -1011,7 +934,7 @@ var Alpha_Script = {
 
     injectBtns().domain(['www.192tt.com', 'www.192tb.com']).removeAD(function () {
         setInterval(function () {
-            $('iframe').remove();
+            removeFrameExcludeInjectIframe_imageAggregationFrame();
             $('div[class^=ad]').remove();
         }, 100);
     }).switchAggregationBtn(function () {
@@ -1059,7 +982,7 @@ var Alpha_Script = {
 
     injectBtns().domain('www.meituri.com').removeAD(function () {
         setInterval(function () {
-            $('iframe').remove();
+            removeFrameExcludeInjectIframe_imageAggregationFrame();
             $('div.weixin').remove();
             $('div[id^=__jclm_]').remove();
             $('center>a').parent().remove();
@@ -1109,7 +1032,7 @@ var Alpha_Script = {
 
     injectBtns().domain('www.xiuren.org').removeAD(function () {
         setInterval(function () {
-            $('iframe').remove();
+            removeFrameExcludeInjectIframe_imageAggregationFrame();
         }, 100);
     }).switchAggregationBtn(function () {
         $('div.post').hide();
@@ -1135,7 +1058,7 @@ var Alpha_Script = {
 
     injectBtns().domain('www.tuao81.top').removeAD(function () {
         setInterval(function () {
-            $('iframe').remove();
+            removeFrameExcludeInjectIframe_imageAggregationFrame();
             $('#v_ads > img').parent().parent().remove();
         }, 100);
     }).switchAggregationBtn(function () {
@@ -1174,7 +1097,7 @@ var Alpha_Script = {
 
     injectBtns().domain(['rosim.cc', 'www.rosim.cc']).removeAD(function () {
         setInterval(function () {
-            $('iframe').remove();
+            removeFrameExcludeInjectIframe_imageAggregationFrame();
         }, 100);
     }).switchAggregationBtn(function () {
         $('div.container>h4').parent().find('div.col-xs-12:eq(2)').hide();
@@ -1238,29 +1161,42 @@ function switchVId(vId) {
     return false;
 }
 
-
-//注入JS：jquery
-function injectJs(e) {
-    if (e.jQuery) {
-        log('jquery available');
-    } else {
-        var ele = e.document.createElement('script');
-        ele.src = "https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js";
-        e.document.body.appendChild(ele);
-        var id = e.setInterval(function () {
-            if (e.jQuery) {
-                e.clearInterval(id);
-            }
-        }, 100);
+function POST_2_IFRAME(data) {
+    var postMsg = data;
+    if (typeof data == 'object') {
+        //postMsg= JSON.stringify(data);
     }
+    window.top.document.getElementById("injectIframe_imageAggregation").contentWindow.postMessage(postMsg, "*");
+};
+
+
+function downloadImg2Blob(imgSrc, callBack) {
+    Alpha_Script.obtainHtml({
+        url: imgSrc,
+        method: 'GET',
+        headers: {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
+            // "Accept-Encoding": "gzip, deflate, sdch",
+            // "Accept-Language": "zh-CN,zh;q=0.8",
+            "Referer": window.location.href,
+            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+        },
+        responseType: 'blob',
+        onload: function (response) {
+            var responseHeaders = Alpha_Script.parseHeaders(response.responseHeaders);
+            var contentType = responseHeaders['Content-Type'];
+            if (!contentType) {
+                contentType = "image/png";
+            }
+            var blob = new Blob([response.response], {type: contentType});
+            callBack(blob);
+        }
+    });
 }
 
-//等待JQuery加载完毕
-function dependenceJQuery(e, callback) {
-    var id = e.setInterval(function () {
-        if (e.jQuery) {
-            e.clearInterval(id);
-            callback;
-        }
-    }, 100);
+function removeFrameExcludeInjectIframe_imageAggregationFrame() {
+    $('iframe').filter(function (index, e) {
+        var frameId = $(e).attr("id");
+        return 'injectIframe_imageAggregation' != frameId;
+    }).remove();
 }
