@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      4.02
+// @version      4.03
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lsmpx\.com/
@@ -23,6 +23,7 @@
 // @include       /https?\:\/\/www\.xmeim\.com/
 // @include       /https?\:\/\/www\.win4000\.com/
 // @include       /https?\:\/\/www\.mm131\.com/
+// @include       /https?\:\/\/www\.mm131\.net/
 // @include       /https?\:\/\/www\.114tuku\.com/
 // @include       /https?\:\/\/www\.192tt\.com/
 // @include       /https?\:\/\/www\.192tb\.com/
@@ -806,7 +807,7 @@ if (window.top === window.self) {
             imgE.style = "max-width: 100%;";
         }));
 
-        aggregationLogics.push(injectAggregationLogic().domain('www.mm131.com').switchAggregationBtn(function () {
+        aggregationLogics.push(injectAggregationLogic().domain(['www.mm131.com', 'www.mm131.net']).switchAggregationBtn(function () {
             $('.content-pic').hide();
             $('.content-page').hide();
         }, function () {
