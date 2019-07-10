@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      4.03
+// @version      4.04
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/www\.lsmpx\.com/
@@ -26,6 +26,7 @@
 // @include       /https?\:\/\/www\.mm131\.net/
 // @include       /https?\:\/\/www\.114tuku\.com/
 // @include       /https?\:\/\/www\.192tt\.com/
+// @include       /https?\:\/\/www\.192ta\.com/
 // @include       /https?\:\/\/www\.192tb\.com/
 // @include       /https?\:\/\/www\.meituri\.com/
 // @include       /https?\:\/\/www\.xiuren\.org/
@@ -102,7 +103,7 @@ if (window.top === window.self) {
         priorityLog('如果不是老司机，只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
         priorityLog('已实现：', '蕾丝猫(http://www.lsmpx.com)', '优美(http://www.umei.cc)', '美图录(http://www.meitulu.com)', '美女86(http://www.17786.com)', '宅男女神(http://www.nvshens.com)', '爱套图(http://www.aitaotu.com)', '妹子图(http://www.mzitu.com)');
         priorityLog('\t\tBeautyleg腿模写真(http://www.beautylegmm.com)', '性感套图(http://www.xgtutu.com/)', '秀美眉(http://www.xmeim.com/)', '优姿美女（http://www.youzi4.cc/)', '美女图片(http://www.mm131.com)');
-        priorityLog('\t\t美桌(http://www.win4000.com/)', '114tuku(http://www.114tuku.com/)', '美女图片(https://www.192tt.com/)');
+        priorityLog('\t\t美桌(http://www.win4000.com/)', '114tuku(http://www.114tuku.com/)', '美女图片(https://www.192ta.com/)');
         priorityLog('\t\t......等');
         priorityLog('未实现：');
         priorityLog('\t\t绝美网(https://www.juemei.com/)');
@@ -930,7 +931,7 @@ if (window.top === window.self) {
             imgE.style = "width: 100%;";
         }));
 
-        aggregationLogics.push(injectAggregationLogic().domain(['www.192tt.com', 'www.192tb.com']).removeAD(function () {
+        aggregationLogics.push(injectAggregationLogic().domain(['www.192tt.com', 'www.192tb.com', 'www.192ta.com']).removeAD(function () {
             setInterval(function () {
                 removeFrameExcludeInjectIframe_imageAggregationFrame();
                 $('div[class^=ad]').remove();
