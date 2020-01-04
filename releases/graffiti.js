@@ -50,11 +50,11 @@
 if (window.top === window.self) {
 
 
-//日志
+    //日志
     function log() {
-    if (false) {
-        console.log.apply(this, arguments);
-    }
+        if (false) {
+            console.log.apply(this, arguments);
+        }
     };
 
     function err() {
@@ -113,8 +113,8 @@ if (window.top === window.self) {
 
             var pageUrls = [];
 
-        // var myHttps = "http://127.0.0.1/static/imageAggregation";
-        var myHttps = "https://cmsv1.findmd5.com/static/imageAggregation";
+            // var myHttps = "http://127.0.0.1/static/imageAggregation";
+            var myHttps = "https://cmsv1.findmd5.com/static/imageAggregation";
             var iframeHtml = '<iframe id="injectIframe_imageAggregation"\n' +
                 '    title="聚合图片嵌入框"\n' +
                 '    style="height: 36px;width: 100%;background: white;overflow:hidden;border:none"\n' +
@@ -1197,7 +1197,7 @@ if (window.top === window.self) {
                 if (!contentType) {
                     contentType = "image/png";
                 }
-                var blob = new Blob([response.response], {type: contentType});
+                var blob = new Blob([response.response], { type: contentType });
                 callBack(blob);
             }
         });
