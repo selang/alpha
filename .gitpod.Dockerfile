@@ -12,9 +12,10 @@ USER root
 # More information: https://www.gitpod.io/docs/42_config_docker/
 USER gitpod
 RUN /home/gitpod/.nvm/nvm-lazy.sh
-RUN source .bash_profile
+RUN 
 RUN echo '#!/bin/bash\n\
-nvm install 12.13 && npm install -g yarn\n' > nvmInstall.sh
+ source .bash_profile\n\ 
+ nvm install 12.13 && npm install -g yarn\n' > nvmInstall.sh
 RUN chmod +x nvmInstall.sh
 RUN ./nvmInstall.sh
 RUN rm -f nvmInstall.sh
