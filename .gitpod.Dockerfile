@@ -12,6 +12,7 @@ USER root
 # More information: https://www.gitpod.io/docs/42_config_docker/
 USER gitpod
 ENV NODE_VERSION=12.14.0
-RUN bash -c "source ~/.nvm/nvm-lazy.sh && nvm install $NODE_VERSION && nvm alias default v$NODE_VERSION"
+RUN bash -c "source ~/.nvm/nvm-lazy.sh && nvm install $NODE_VERSION"
+ENV PATH=/home/gitpod/.nvm/versions/node/v${NODE_VERSION}/bin:$PATH
 
 USER root
