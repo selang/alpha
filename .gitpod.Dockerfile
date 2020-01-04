@@ -11,9 +11,8 @@ USER root
 #
 # More information: https://www.gitpod.io/docs/42_config_docker/
 USER gitpod
-RUN node -v
 RUN echo '#!/bin/bash\n\
- nvm install 12.13 && npm install -g yarn\n' > nvmInstall.sh
+ .nvm/nvm.sh && nvm install 12.13 && npm install -g yarn\n' > nvmInstall.sh
 RUN chmod +x nvmInstall.sh
 RUN ./nvmInstall.sh
 RUN rm -f nvmInstall.sh
