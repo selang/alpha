@@ -10,3 +10,7 @@ USER root
 #    && apt-get clean && rm -rf /var/cache/apt/* && rm -rf /var/lib/apt/lists/* && rm -rf /tmp/*
 #
 # More information: https://www.gitpod.io/docs/42_config_docker/
+USER gitpod
+RUN nvm install 12.13
+RUN npm install -g yarn
+USER root
