@@ -13,7 +13,8 @@ USER root
 USER gitpod
 ENV NODE_VERSION=12.14.0
 RUN echo '#!/bin/bash\n\
- source ~/.nvm/nvm-lazy.sh && nvm install $NODE_VERSION && nvm use $NODE_VERSION\n' > nvmInstall.sh
+ source ~/.nvm/nvm-lazy.sh && nvm install $NODE_VERSION && nvm use v$NODE_VERSION\n' > nvmInstall.sh
+RUN cat nvmInstall.sh
 RUN chmod +x nvmInstall.sh
 RUN sudo ./nvmInstall.sh
 RUN rm -f nvmInstall.sh
