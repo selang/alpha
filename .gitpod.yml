@@ -1,8 +1,5 @@
 image:
   file: .gitpod.Dockerfile
-tasks:
-  - before: nvm install 12.13
-    command: node -v
-  - before: npm install -g yarn
+
 
   
