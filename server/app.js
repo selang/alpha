@@ -4,10 +4,17 @@ const fs = require("fs");
 
 var server = http.createServer(function (req, res) {
     let fileName;
-    if (req.url.startsWith('/releases/')) {
-        fileName = Path.resolve(__dirname, ".." + req.url);
+    let url;
+    let subIndex = req.url.indexOf('?');
+    if (subIndex != -1) {
+        url = req.url.substring(req.url.indexOf('?'), 0)
     } else {
-        fileName = Path.resolve(__dirname, "." + req.url);
+        url = req.url;
+    }
+    if (url.startsWith('/releases/')) {
+        fileName = Path.resolve(__dirname, ".." + url);
+    } else {
+        fileName = Path.resolve(__dirname, "." + url);
     }
     const extName = Path.extname(fileName).substr(1);
     if (extName) {
