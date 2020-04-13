@@ -104,7 +104,7 @@ app.directive('myHotkey', function () {
             angular.element(window).on('keydown', function (e) {
                 if (e.key == value) {
                     if (self.hotKey) {
-                        console.log('keypress', e.key);
+                        log('keypress', e.key);
                         element.trigger(config.event);
                     }
                 }
@@ -113,6 +113,16 @@ app.directive('myHotkey', function () {
     }
 });
 
+// File/Blob对象转DataURL
+function fileOrBlobToDataURL(obj, cb) {
+    let a = new FileReader();
+    a.readAsDataURL(obj);
+    a.onload = function (e) {
+        cb(e.target.result);
+    };
+}
+
+let maxWidth = 0;
 var blobCache = [];
 app.controller("myCtrl", function ($scope) {
     $scope.hotKey = {};
@@ -152,16 +162,24 @@ app.controller("myCtrl", function ($scope) {
                 }
             }
             if (data.imgBlob.size > 2000) {
+
+                fileOrBlobToDataURL(data.imgBlob, dataUrl => {
+                    var img = new Image();
+                    img.src = dataUrl;
+                    img.onload = function () {
+                        if (maxWidth < img.width) {
+                            maxWidth = img.width;
+                        }
+                        POST_2_WEB_PAGE({
+                            tag: 'heightChange',
+                            data: {
+                                iframeHeight: Math.max(document.body.scrollHeight, document.body.clientHeight),
+                                iframeWidth: maxWidth
+                            }
+                        });
+                    };
+                })
                 $(selector).append(picNode);
-                var iframeHeight = Math.max(document.body.scrollHeight, document.body.clientHeight,  document.scrollingElement.scrollHeight);
-                var iframeWidth = Math.max(document.body.scrollWidth, document.body.clientWidth,  document.scrollingElement.scrollWidth);
-                POST_2_WEB_PAGE({
-                    tag: 'heightChange',
-                    data: {
-                        iframeHeight: iframeHeight,
-                        iframeWidth: iframeWidth
-                    }
-                });
             }
         } else if ("online" == dt.tag) {
             POST_2_WEB_PAGE({
@@ -193,7 +211,7 @@ app.controller("myCtrl", function ($scope) {
             data: {
                 aggregationBtnTxt: $scope.aggregatonBtnSwitchDisplay,
                 iframeHeight: Math.max(document.body.scrollHeight, document.body.clientHeight),
-                iframeWidth: Math.max(document.body.scrollWidth, document.body.clientWidth)
+                iframeWidth: maxWidth
             }
         });
     }
@@ -214,7 +232,7 @@ app.controller("myCtrl", function ($scope) {
                     var blobCacheElementElement = blobCacheElement[j];
                     //1227是无图
                     if (blobCacheElementElement.size > 2000) {
-                        img.file(cnt++ + ".jpg", blobCacheElementElement, { base64: false });
+                        img.file(cnt++ + ".jpg", blobCacheElementElement, {base64: false});
                     }
                 }
             }
@@ -224,7 +242,7 @@ app.controller("myCtrl", function ($scope) {
 
     $scope.packageAndDownload = function () {
         $scope.pack();
-        zip.generateAsync({ type: "blob" })
+        zip.generateAsync({type: "blob"})
             .then(function (content) {
                 saveAs(content, "PackageSL.zip");
             });
@@ -232,7 +250,7 @@ app.controller("myCtrl", function ($scope) {
 
     $scope.makeAggregatonTorrent = function () {
         $scope.pack();
-        zip.generateAsync({ type: "blob" })
+        zip.generateAsync({type: "blob"})
             .then(function (content) {
                 $scope.seedSource(content);
             });
@@ -258,12 +276,12 @@ app.controller("myCtrl", function ($scope) {
 
     var rtcConfig = {
         'iceServers': [
-            { 'urls': 'stun:stun.l.google.com:19305' },
-            { 'urls': 'stun:stun01.sipphone.com' },
-            { 'urls': 'stun:stun.ekiga.net' },
-            { 'urls': 'stun:stun.fwdnet.net' },
-            { 'urls': 'stun:stun.ideasip.com' },
-            { 'urls': 'stun:stun.iptel.org' }
+            {'urls': 'stun:stun.l.google.com:19305'},
+            {'urls': 'stun:stun01.sipphone.com'},
+            {'urls': 'stun:stun.ekiga.net'},
+            {'urls': 'stun:stun.fwdnet.net'},
+            {'urls': 'stun:stun.ideasip.com'},
+            {'urls': 'stun:stun.iptel.org'}
         ]
     }
 
@@ -281,7 +299,7 @@ app.controller("myCtrl", function ($scope) {
             var client = new WebTorrent({
                 tracker: trackerOpts
             });
-            var files = new window.File([blob], "PackageSL.zip", { type: 'zip' });
+            var files = new window.File([blob], "PackageSL.zip", {type: 'zip'});
             client.seed(files, torrentOpts, function (torrent) {
                 $scope.infoHash = torrent.infoHash;
                 $scope.$apply();
