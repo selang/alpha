@@ -1,0 +1,8 @@
+image:
+  file: .gitpod.Dockerfile
+tasks:
+  - command: node /workspace/alpha/server/app.js
+ports:
+  - port: 8080
+
+  
