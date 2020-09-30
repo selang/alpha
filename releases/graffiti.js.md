@@ -10,11 +10,9 @@ QQ群号：455809302,或者点击链接加入群[【油猴脚本私人定制】]
 
 ### 部分聚合页样例地址
 
- [蕾丝猫(lesmao.me)](http://www.lesmao.me/thread-1529-1-1.html "蕾丝猫(lesmao.me)")
+ [蕾丝猫(lesmao.org)](http://www.lesmao.org/thread-1529-1-1.html "蕾丝猫(lesmao.me)")
 
  [优美(umei.cc)](http://www.umei.cc/meinvtupian/nayimeinv/28680_1.htm "优美(umei.cc)")  
-
- [美图录(meitulu.com)](http://www.meitulu.com/item/9805.html "美图录(meitulu.com)")
 
  [美女86(17786.com)](http://www.17786.com/7987_42.html "美女86(17786.com)")
 

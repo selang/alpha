@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         美女图聚合展示by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      4.07
+// @version      4.08
 // @description  目标是聚合网页美女图片，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include       /https?\:\/\/*/
@@ -22,19 +22,19 @@
 (function () {
     if (window.top === window.self) {
         let css = `.float-iframe{
-        max-height: 100% !important;
-        max-width: 100% !important;
-    position: absolute;
-    width: 100% !important;
-    background: white;
-    overflow:hidden;
-    border:none;
-    top: 0;
-    left: 0;
-    border: 0;
-    z-index: 1000;
-    // opacity: 0;
-}`;
+            max-height: 100% !important;
+            max-width: 100% !important;
+            position: absolute;
+            width: 100% !important;
+            background: white;
+            overflow:hidden;
+            border:none;
+            top: 0;
+            left: 0;
+            border: 0;
+            z-index: 1000;
+            // opacity: 0;
+        }`;
         GM_addStyle(css);
 
         //日志
@@ -90,6 +90,7 @@
             priorityLog('一起玩不论是不是技术人员都欢迎。只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
             priorityLog('未实现：');
             priorityLog('\t\t绝美网(https://www.juemei.com/)');
+
             var aggregationLogics = [];
 
             function injectAggregationLogic() {
@@ -755,6 +756,50 @@
                 }
             }).collectPics(function (doc) {
                 return $(doc).find('div.col-xs-12> img.img-responsive ');
+            }));
+
+            aggregationLogics.push(injectAggregationLogic().domain(['www.nvshens.org', 'www.nvshens.com', 'www.nvshens.net']).removeAD(function () {
+                $('div[id^=mms]').remove();//移除广告等无必要元素
+            }).switchAggregationBtn(function () {
+                $('div.ck-box-unit').hide();
+                $('div.photos').hide();
+                $('div#imgwrap').hide();
+            }, function () {
+                $('div.ck-box-unit').show();
+                $('div.photos').show();
+                $('div#imgwrap').show();
+            }).injectAggregationRef(function (injectComponent, pageUrls) {
+                var currentPathname = window.location.pathname;
+                var match = currentPathname.match(/^\/(g\/\d+)\/?(?:\d+\.html)?$/im);//https://www.nvshens.com/g/26489/1.html
+                if (match !== null) {
+                    {
+                        var totalPageCnt = 1;
+                        var partPreUrl = match[1];
+                        var pageId = '/';
+                        var suffixUrl = '.html';
+                        var limitPageStr = $('div#dinfo span[style="color: #DB0909"]').html();
+                        var limitPageMatch = limitPageStr.match(/(\d+)张照片/im);
+                        if (limitPageMatch != null) {
+                            var totalPics = parseInt(limitPageMatch[1]);
+                            var number = totalPics % 3;
+                            totalPageCnt = Math.floor(totalPics / 3);
+                            if (number > 0) {
+                                totalPageCnt = totalPageCnt + 1;
+                            }
+                            log('totalPageCnt', totalPageCnt);
+                        }
+                        for (var i = 1; i <= totalPageCnt; i++) {
+                            var pageUrl = partPreUrl + pageId + i + suffixUrl;
+                            log('push pageUrl:', pageUrl);
+                            pageUrls.push(pageUrl);
+                        }
+                    }
+                    $('div#dinfo').after(injectComponent);
+                }
+            }).collectPics(function (doc) {
+                return $(doc).find('ul#hgallery img');
+            }, function (imgE) {
+                imgE.style = "width: 100%;height: 100%";
             }));
 
             {
