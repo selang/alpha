@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         聚合网页(美女图聚合展示演化而来)by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.04
+// @version      0.05
 // @description  目标是聚合网页，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include      /https?\:\/\/*/
@@ -347,8 +347,9 @@
                     if (imgs.length > 0) {
                         log('规则找到图片');
                         let containerHtml = imgs.map((e, i) => `<div id="c_${i}"></div>`).join("");
-                        let inject = `<html><head></head><body><div>${containerHtml}</div><script type="application/javascript">${imageWidth.toString()}${loadHidden.toString()}</script></body></html>`;
-                        $('html').html(inject);
+                        let inject = `<div>${containerHtml}</div><script type="application/javascript">${imageWidth.toString()}${loadHidden.toString()}</script>`;
+                        $('script').remove();
+                        $('body').html(inject);
                         await Alpha_Script.asyncPool(10, imgs, async function (src, i) {
                             let blob = await downloadImg2Blob(src);
                             let url = URL.createObjectURL(blob);
