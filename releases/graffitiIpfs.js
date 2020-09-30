@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         聚合网页(美女图聚合展示演化而来)by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.02
+// @version      0.03
 // @description  目标是聚合网页，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include      /https?\:\/\/*/
@@ -145,7 +145,14 @@
                         if (url.startsWith("/")) {
                             url = `${window.location.protocol}//${window.location.hostname}${url}`;
                         } else {
-                            url = `${window.location.protocol}//${window.location.hostname}/${url}`;
+                            let prefixRegex = /(.*?\/)[^\/]*$/i;
+                            let __matched = prefixRegex.exec(window.location.href);
+                            if (__matched != null) {
+                                url = `${__matched[1]}${url}`;
+                            } else {
+                                url = `${window.location.protocol}//${window.location.hostname}/${url}`;
+                            }
+
                         }
 
                     } else {
@@ -156,14 +163,16 @@
             }
 
             async function parseNextPages(nextSelector = 'a:contains("下一页")') {
-                let ret = [];
-                ret.push({
+                let nextPages = [];
+                let existNextPage = false;
+                nextPages.push({
                     url: window.location.href,
                     html: $('html').prop("outerHTML")
                 });
                 let nextEs = $(nextSelector);
                 log('解析下一页开始...');
                 while (nextEs.length > 0) {
+                    existNextPage = true;
                     let nextPageUrl = nextEs.attr('href');
                     let validateUrlResult = validateUrl(nextPageUrl);
                     if (!validateUrlResult.validate) {
@@ -172,7 +181,7 @@
                     nextPageUrl = validateUrlResult.url;
                     log(nextPageUrl);
                     let html = await Alpha_Script.obtainHtmlAsync({url: nextPageUrl});
-                    ret.push({
+                    nextPages.push({
                         url: nextPageUrl,
                         html
                     });
@@ -181,7 +190,7 @@
                     // await Alpha_Script.sleep(1000);
                 }
                 log('解析下一页结束...');
-                return ret;
+                return {existNextPage, nextPages};
             }
 
             /**
@@ -196,14 +205,18 @@
                 //下一页css选择器
                 let nextPageSelector = 'a:contains("下一页")';
                 //要聚合的图片css选择器
-                let imgSelector = 'ul > li > img';
-                let nextPages = await parseNextPages(nextPageSelector);
-                nextPages.map(nextPage => {
-                    let images = Array.from($($(nextPage.html)).find(imgSelector)).map(e => e.src);
-                    nextPage.imgs = images;
-                });
-                let imgs = nextPages.flatMap(page => page.imgs);
-                return imgs;
+                let imgSelector = 'img';
+                let {existNextPage,nextPages} = await parseNextPages(nextPageSelector);
+                if(existNextPage){
+                    nextPages.map(nextPage => {
+                        let images = Array.from($($(nextPage.html)).find(imgSelector)).map(e => e.src);
+                        nextPage.imgs = images;
+                    });
+                    let imgs = nextPages.flatMap(page => page.imgs);
+                    return imgs;
+                }else {
+                    return [];
+                }
             }
 
             /**
@@ -256,7 +269,7 @@
             }
 
             (async () => {
-
+                // let cidStr;
                 {
                     //这里是一个插件的例子
                     let cid = await node.dag.put(
@@ -268,10 +281,11 @@
                         }
                     );
                     let cidStr = cid.toLocaleString();
+                    // cidStr = cid.toLocaleString();
                     console.log('你需要分享的地址为：', cidStr);
                 }
                 // 你自己写的或者他人分享的cidPath;
-                let cidStr = "bafyreia76orynqjjqitqqiakg7bw444qbmedqxriqz2rzkagzccnt5js4u";
+                let cidStr = "bafyreif67p5brrhbrlpajxpjjeuoelbnicil5qtwokrrh4sqlnrse4c2wi";
                 let rules = await obtainRulesFromIPFS(cidStr);
                 for (let rule of rules) {
                     log('当前执行规则>> %s 编写规则参考地址：%s 规则内容：%s', rule.desc, rule.url, rule.parseRule);
