@@ -5,5 +5,5 @@ QQ群号：455809302,或者点击链接加入群[【油猴脚本私人定制】]
 ![扫码加群](https://greasyfork.org/system/screenshots/screenshots/000/015/298/thumb/QQGroup.png?1557913416 "扫码加群")
 
 ### 功能描述
- 该脚本是基于ipfs，可以自己开发扩展。
- 
+ 该脚本是基于ipfs，可以自己开发扩展。  
+ 默认隐藏长宽不足500像素的图片

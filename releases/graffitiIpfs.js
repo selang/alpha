@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         聚合网页(美女图聚合展示演化而来)by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.03
+// @version      0.04
 // @description  目标是聚合网页，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include      /https?\:\/\/*/
@@ -43,6 +43,20 @@
         const AsyncFunction = Object.getPrototypeOf(async function () {
         }).constructor;
 
+        Array.prototype.distinct = function () {
+            let arr = this;
+            let result = [];
+            let obj = {};
+
+            for (let i of arr) {
+                if (!obj[i]) {
+                    result.push(i);
+                    obj[i] = 1;
+                }
+            }
+            return result;
+        }
+
         const Alpha_Script = {
             sleep: function (time = 100) {
                 return new Promise(resolve => {
@@ -64,12 +78,24 @@
                         "User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
                     );
                     options.method = options.method || 'GET';
-                    options.onload = options.onload || function (response) {
-                        if (response && response.status && response.status >= 200 && response.status < 300) {
-                            let html = response.responseText;
-                            resolve(html);
-                        }
+                    let responseType = options.responseType;
+                    switch (responseType) {
+                        case "blob":
+                            options.onload = options.onload || function (response) {
+                                if (response && response.status && response.status >= 200 && response.status < 300) {
+                                    resolve(response);
+                                }
+                            }
+                            break;
+                        default:
+                            options.onload = options.onload || function (response) {
+                                if (response && response.status && response.status >= 200 && response.status < 300) {
+                                    let html = response.responseText;
+                                    resolve(html);
+                                }
+                            }
                     }
+
                     GM_xmlhttpRequest(options);
                 });
             },
@@ -83,8 +109,9 @@
                         return Promise.resolve();
                     }
                     //Initialize a promise every enqueue
-                    const item = array[i++];
-                    const p = Promise.resolve().then(() => iteratorFn(item, array));
+                    const item = array[i];
+                    const p = Promise.resolve(i).then((i) => iteratorFn(item, i, array));
+                    i++;
                     //Put into promises array
                     ret.push(p);
                     //After the promise is executed, remove it from the executing array
@@ -138,27 +165,25 @@
 
             function validateUrl(url) {
                 let validate = true;
+                let lowerCaseUrl = url.toLowerCase();
                 if (url.startsWith('#')) {
                     validate = false;
+                } else if (lowerCaseUrl.startsWith('//')) {
+                    url = `${window.location.protocol}${url}`;
+                } else if (lowerCaseUrl.startsWith("/")) {
+                    url = `${window.location.protocol}//${window.location.hostname}${url}`;
+                } else if (lowerCaseUrl.startsWith('https://') || lowerCaseUrl.startsWith('http://')) {
+
                 } else {
-                    if (!url.toLowerCase().startsWith('//')) {
-                        if (url.startsWith("/")) {
-                            url = `${window.location.protocol}//${window.location.hostname}${url}`;
-                        } else {
-                            let prefixRegex = /(.*?\/)[^\/]*$/i;
-                            let __matched = prefixRegex.exec(window.location.href);
-                            if (__matched != null) {
-                                url = `${__matched[1]}${url}`;
-                            } else {
-                                url = `${window.location.protocol}//${window.location.hostname}/${url}`;
-                            }
-
-                        }
-
+                    let prefixRegex = /(.*?\/)[^\/]*$/i;
+                    let __matched = prefixRegex.exec(window.location.href);
+                    if (__matched != null) {
+                        url = `${__matched[1]}${url}`;
                     } else {
-                        url = `${window.location.protocol}${url}`;
+                        url = `${window.location.protocol}//${window.location.hostname}/${url}`;
                     }
                 }
+
                 return {validate, url};
             }
 
@@ -206,15 +231,22 @@
                 let nextPageSelector = 'a:contains("下一页")';
                 //要聚合的图片css选择器
                 let imgSelector = 'img';
-                let {existNextPage,nextPages} = await parseNextPages(nextPageSelector);
-                if(existNextPage){
+                let {existNextPage, nextPages} = await parseNextPages(nextPageSelector);
+                if (existNextPage) {
                     nextPages.map(nextPage => {
-                        let images = Array.from($($(nextPage.html)).find(imgSelector)).map(e => e.src);
+                        let images = Array.from($($(nextPage.html)).find(imgSelector)).map(e => {
+                            let src = e.src;
+                            let dataOriginal = $(e).attr('data-original');
+                            if (dataOriginal) {
+                                src = dataOriginal;
+                            }
+                            return src;
+                        });
                         nextPage.imgs = images;
                     });
                     let imgs = nextPages.flatMap(page => page.imgs);
                     return imgs;
-                }else {
+                } else {
                     return [];
                 }
             }
@@ -225,9 +257,9 @@
              * @returns {Promise<{validate: boolean}|{date: *, parseRule: *, url: *, validate: boolean, desc: *}>}
              */
             async function parseRuleFromIPFS(cid) {
-                const {date, desc, parseRule, url, pre} = (await node.dag.get(cid)).value;
+                const {date, desc, parseRule, url, pre, excludeWebsites} = (await node.dag.get(cid)).value;
                 if (parseRule && url && desc && date) {
-                    return {validate: true, date, desc, parseRule, url, pre};
+                    return {validate: true, date, desc, parseRule, url, pre, excludeWebsites};
                 } else {
                     return {validate: false};
                 }
@@ -274,28 +306,54 @@
                     //这里是一个插件的例子
                     let cid = await node.dag.put(
                         {
-                            url: 'https://www.lesmao.org/thread-24812-1-1.html',
-                            desc: '蕾丝猫聚合',
+                            url: '通用',
+                            desc: '通用聚合',
                             parseRule: `return await (${example.toString()})(parseNextPages,$,log,Alpha_Script)`,
+                            excludeWebsites: ['https://xxxxx需要排除的网站'],
                             date: '2020年9月30日'
+                        }
+                    );
+                    cid = await node.dag.put(
+                        {
+                            url: '这里可以写书写规则的网址',
+                            desc: '第二个通用聚合',
+                            parseRule: `return await (${example.toString()})(parseNextPages,$,log,Alpha_Script)`,
+                            excludeWebsites: ['https://xxxxx需要排除的网站'],
+                            date: '2020年9月30日',
+                            pre: cid.toString()
                         }
                     );
                     let cidStr = cid.toLocaleString();
                     // cidStr = cid.toLocaleString();
-                    console.log('你需要分享的地址为：', cidStr);
+                    console.log('你的插件分享的地址为：', cidStr);
                 }
                 // 你自己写的或者他人分享的cidPath;
-                let cidStr = "bafyreif67p5brrhbrlpajxpjjeuoelbnicil5qtwokrrh4sqlnrse4c2wi";
+                let cidStr = "bafyreicfn763eq4qmjq4icgt6nwrcot7pu6otsiizowddeb3h7fassbo5y";
                 let rules = await obtainRulesFromIPFS(cidStr);
+                log('当前规则总数：', rules.length);
                 for (let rule of rules) {
-                    log('当前执行规则>> %s 编写规则参考地址：%s 规则内容：%s', rule.desc, rule.url, rule.parseRule);
+                    log('当前执行规则>> %s 编写规则参考地址：%s\r\n 规则内容：%s', rule.desc, rule.url, rule.parseRule);
+                    let excludeWebsites = rule.excludeWebsites;
+                    if (Alpha_Script.isArray(excludeWebsites)) {
+                        let findAnyOnes = excludeWebsites.filter(excludeWebsite => window.location.href.startsWith(excludeWebsite));
+                        if (findAnyOnes.length > 0) {
+                            log('当前规则被排除');
+                            continue;
+                        }
+                    }
                     let ruleFunc = rule.parseRule;
                     let imgs = await (new AsyncFunction('parseNextPages', '$', 'log', 'Alpha_Script', ruleFunc))(parseNextPages, $, log, Alpha_Script);
+                    imgs = imgs.distinct();
                     if (imgs.length > 0) {
                         log('规则找到图片');
-                        let containerHtml = imgs.map((e, i) => `<div id="c_${i}"><img src="${e}"/></div>`).join("");
-                        let inject = `<html><head></head><body><div>${containerHtml}</div></body></html>`;
+                        let containerHtml = imgs.map((e, i) => `<div id="c_${i}"></div>`).join("");
+                        let inject = `<html><head></head><body><div>${containerHtml}</div><script type="application/javascript">${imageWidth.toString()}${loadHidden.toString()}</script></body></html>`;
                         $('html').html(inject);
+                        await Alpha_Script.asyncPool(10, imgs, async function (src, i) {
+                            let blob = await downloadImg2Blob(src);
+                            let url = URL.createObjectURL(blob);
+                            $(`#c_${i}`).append(`<img src="${url}" onload="loadHidden(this)"/>`);
+                        });
                         log('规则执行完毕');
                         break;
                         // await Alpha_Script.sleep(5000);
@@ -304,6 +362,56 @@
 
                 log('执行完毕');
             })();
+
+            async function downloadImg2Blob(imgSrc) {
+                let response = await Alpha_Script.obtainHtmlAsync({
+                    url: imgSrc,
+                    method: 'GET',
+                    headers: {
+                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
+                        // "Accept-Encoding": "gzip, deflate, sdch",
+                        // "Accept-Language": "zh-CN,zh;q=0.8",
+                        "Referer": window.location.href,
+                        "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+                    },
+                    responseType: 'blob'
+                });
+                let responseHeaders = Alpha_Script.parseHeaders(response.responseHeaders);
+                let contentType = responseHeaders['Content-Type'];
+                if (!contentType) {
+                    contentType = "image/png";
+                }
+                let blob = new Blob([response.response], {type: contentType});
+                return blob;
+            }
+
+            async function loadHidden(e) {
+                let {height, width} = await imageWidth(e);
+                if (!(height > 500 && width > 500)) {
+                    e.style.display = 'none';
+                }
+            }
+
+            function getImageWidth(url) {
+                let img = new Image();
+                img.src = url;
+                return imageWidth(img);
+            }
+
+            function imageWidth(img) {
+                return new Promise(resolve => {
+                    // 如果图片被缓存，则直接返回缓存数据
+                    if (img.complete) {
+                        resolve(img);
+                    } else {
+                        // 完全加载完毕的事件
+                        img.onload = function () {
+                            resolve(img);
+                        }
+                    }
+
+                });
+            }
 
             GM_registerMenuCommand("规则列表", ruleListFunc, "R");
 
