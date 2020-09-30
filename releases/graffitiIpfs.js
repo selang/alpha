@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         聚合网页(美女图聚合展示演化而来)by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.01
+// @version      0.02
 // @description  目标是聚合网页，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include      /https?\:\/\/*/
@@ -19,8 +19,10 @@
 // @grant        unsafeWindow
 // ==/UserScript==
 
-(function () {
+(async function () {
     if (window.top === window.self) {
+        const node = await Ipfs.create();
+
         //日志
         function log() {
             if (true) {
@@ -182,53 +184,118 @@
                 return ret;
             }
 
-            async function example(parseNextPages, $, log) {
-                let nextPages = await parseNextPages();
+            /**
+             * 插件图片聚合例子
+             * @param parseNextPages 解析下一页的公用方法
+             * @param $  jquery
+             * @param log 日志输出
+             * @param Alpha_Script 公用对象
+             * @returns {Promise<*[]>} 图片合集
+             */
+            async function example(parseNextPages, $, log, Alpha_Script) {
+                //下一页css选择器
+                let nextPageSelector = 'a:contains("下一页")';
+                //要聚合的图片css选择器
+                let imgSelector = 'ul > li > img';
+                let nextPages = await parseNextPages(nextPageSelector);
                 nextPages.map(nextPage => {
-                    $($(nextPage.html)).find('ul > li > img');
-                    let images = Array.from($($(nextPage.html)).find('ul > li > img')).map(e => e.src);
+                    let images = Array.from($($(nextPage.html)).find(imgSelector)).map(e => e.src);
                     nextPage.imgs = images;
                 });
                 let imgs = nextPages.flatMap(page => page.imgs);
-                if (imgs.length > 0) {
-                    let cacheCurrentPage = {
-                        url: window.location.href,
-                        html: $('html').prop("outerHTML")
-                    };
-                    let containerHtml = imgs.map((e, i) => `<div id="c_${i}"><img src="${e}"/></div>`).join("");
-                    let inject = `<html><head></head><body><div>${containerHtml}</div></body></html>`;
-                    $('html').html(inject);
-                    await Alpha_Script.sleep(5000);
+                return imgs;
+            }
+
+            /**
+             * 校验cid是否符合rule
+             * @param cid
+             * @returns {Promise<{validate: boolean}|{date: *, parseRule: *, url: *, validate: boolean, desc: *}>}
+             */
+            async function parseRuleFromIPFS(cid) {
+                const {date, desc, parseRule, url, pre} = (await node.dag.get(cid)).value;
+                if (parseRule && url && desc && date) {
+                    return {validate: true, date, desc, parseRule, url, pre};
+                } else {
+                    return {validate: false};
                 }
             }
 
+            /**
+             * 获取cid下所有的规则
+             * @param cid
+             * @returns {Promise<[]>}
+             */
+            async function obtainRulesFromIPFS(cid) {
+                let rules = [];
+                let cids = [];
+                while (true) {
+                    try {
+                        let rule = await parseRuleFromIPFS(cid);
+                        if (rule.validate) {
+                            rules.push(rule);
+                            if (rule.pre) {
+                                cid = rule.pre;
+                                if (cids.includes(cid)) {
+                                    err('闭环了');
+                                    break;
+                                } else {
+                                    cids.push(cid);
+                                }
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    } catch (e) {
+                        err(e);
+                        break;
+                    }
+                }
+                return rules;
+            }
+
             (async () => {
-                log('IPFS 开始执行');
-                const node = await Ipfs.create()
+
                 {
                     //这里是一个插件的例子
                     let cid = await node.dag.put(
                         {
                             url: 'https://www.lesmao.org/thread-24812-1-1.html',
                             desc: '蕾丝猫聚合',
-                            parseRule: `(${example.toString()})(parseNextPages,$,log)`,
+                            parseRule: `return await (${example.toString()})(parseNextPages,$,log,Alpha_Script)`,
                             date: '2020年9月30日'
                         }
                     );
                     let cidStr = cid.toLocaleString();
-                    let cidPath = `${cidStr}/parseRule`;
-                    console.log('你需要分享的地址为：', cidPath);
+                    console.log('你需要分享的地址为：', cidStr);
+                }
+                // 你自己写的或者他人分享的cidPath;
+                let cidStr = "bafyreia76orynqjjqitqqiakg7bw444qbmedqxriqz2rzkagzccnt5js4u";
+                let rules = await obtainRulesFromIPFS(cidStr);
+                for (let rule of rules) {
+                    log('当前执行规则>> %s 编写规则参考地址：%s 规则内容：%s', rule.desc, rule.url, rule.parseRule);
+                    let ruleFunc = rule.parseRule;
+                    let imgs = await (new AsyncFunction('parseNextPages', '$', 'log', 'Alpha_Script', ruleFunc))(parseNextPages, $, log, Alpha_Script);
+                    if (imgs.length > 0) {
+                        log('规则找到图片');
+                        let containerHtml = imgs.map((e, i) => `<div id="c_${i}"><img src="${e}"/></div>`).join("");
+                        let inject = `<html><head></head><body><div>${containerHtml}</div></body></html>`;
+                        $('html').html(inject);
+                        log('规则执行完毕');
+                        break;
+                        // await Alpha_Script.sleep(5000);
+                    }
                 }
 
-                // const parseRule = await node.dag.get(你自己写的或者他人分享的cidPath);
-                const parseRule = await node.dag.get("bafyreidkjki5d3aiop7mgz7zypfhaktb5rzoprqipfkiwyycwt4xl3jmei/parseRule");
-                let rule = parseRule.value;
-                log(rule);
-                await (new AsyncFunction('parseNextPages', '$', 'log', rule))(parseNextPages, $, log);
-                log('IPFS 执行完毕');
+                log('执行完毕');
             })();
 
+            GM_registerMenuCommand("规则列表", ruleListFunc, "R");
 
+            function ruleListFunc() {
+                log("我是规则列表");
+            }
         })();
     }
 })
