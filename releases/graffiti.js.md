@@ -1,8 +1,11 @@
 # 交流
 
 QQ群号：455809302,或者点击链接加入群[【油猴脚本私人定制】](https://jq.qq.com/?_wv=1027&k=45p9bea)  
-可以扫码加群
+扫码加群
 ![扫码加群](https://greasyfork.org/system/screenshots/screenshots/000/015/298/thumb/QQGroup.png?1557913416 "扫码加群")
+
+##推荐
+聚合改进版的脚本：  [聚合网页(美女图聚合展示演化而来)by SeLang](https://greasyfork.org/en/scripts/412231-%E8%81%9A%E5%90%88%E7%BD%91%E9%A1%B5-%E7%BE%8E%E5%A5%B3%E5%9B%BE%E8%81%9A%E5%90%88%E5%B1%95%E7%A4%BA%E6%BC%94%E5%8C%96%E8%80%8C%E6%9D%A5-by-selang "聚合网页(美女图聚合展示演化而来)by SeLang") 
 
 ## 注意需要总是允许页面通信权限
 
