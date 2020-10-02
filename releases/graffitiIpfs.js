@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         聚合网页(美女图聚合展示演化而来)by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.05
+// @version      0.06
 // @description  目标是聚合网页，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include      /https?\:\/\/*/
@@ -15,13 +15,20 @@
 // @grant        GM_saveTab
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
+// @grant        GM_setValue
+// @grant        GM_getValue
 // @grant        GM_registerMenuCommand
 // @grant        unsafeWindow
 // ==/UserScript==
 
 (async function () {
     if (window.top === window.self) {
-        const node = await Ipfs.create();
+        const NODE = await Ipfs.create(({repo: 'ipfs-monkey-aggregation'}));
+        const RULE_CID_KEY = '聚合网页RULE_CID_KEY';
+        const RULE_OFFICIAL_CID_KEY = '聚合网页OFFICIAL_RULE_CID_KEY';
+        const ENV_DEV_STATUS = 'DEV';
+        const ENV_PRODUCT_STATUS = 'PRODUCT';
+        const ENV_STATUS = ENV_PRODUCT_STATUS;
 
         //日志
         function log() {
@@ -38,6 +45,28 @@
 
         function priorityLog() {
             console.log.apply(this, arguments);
+        }
+
+        function getRuleCids() {
+            let officialCIDValue = GM_getValue(RULE_OFFICIAL_CID_KEY);
+            let value = GM_getValue(RULE_CID_KEY);
+            if (value) {
+                let parse = JSON.parse(value);
+                if (officialCIDValue) {
+                    return [officialCIDValue, ...parse];
+                } else {
+                    return parse;
+                }
+            }
+            if (officialCIDValue) {
+                return [officialCIDValue];
+            } else {
+                return [];
+            }
+        }
+
+        function setRuleCids(key, value) {
+            return GM_setValue(key, value);
         }
 
         const AsyncFunction = Object.getPrototypeOf(async function () {
@@ -136,9 +165,9 @@
                 GM_xmlhttpRequest(options);
             },
             parseHeaders: function (headStr) {
-                var o = {};
-                var myregexp = /^([^:]+):(.*)$/img;
-                var match = /^([^:]+):(.*)$/img.exec(headStr);
+                let o = {};
+                let myregexp = /^([^:]+):(.*)$/img;
+                let match = /^([^:]+):(.*)$/img.exec(headStr);
                 while (match != null) {
                     o[match[1].trim()] = match[2].trim();
                     match = myregexp.exec(headStr);
@@ -147,8 +176,8 @@
             },
             //获取参数
             getParam: function (dest, name) {
-                var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-                var r = dest.match(reg);
+                let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+                let r = dest.match(reg);
                 if (r != null) return decodeURI(r[2]);
                 return null;
             },
@@ -161,7 +190,6 @@
             'use strict';
             priorityLog('欢迎进群：455809302交流。一起玩。');
             priorityLog('一起玩不论是不是技术人员都欢迎。只要有创意也欢迎加入。点击链接加入群【油猴脚本私人级别定制】：https://jq.qq.com/?_wv=1027&k=460soLy。');
-            priorityLog('未实现：');
 
             function validateUrl(url) {
                 let validate = true;
@@ -210,8 +238,8 @@
                         url: nextPageUrl,
                         html
                     });
-                    let parseHTML = $.parseHTML(html);
-                    nextEs = $(parseHTML).find(nextSelector);
+                    let {$doc} = txt2Document(html);
+                    nextEs = $doc.find(nextSelector);
                     // await Alpha_Script.sleep(1000);
                 }
                 log('解析下一页结束...');
@@ -257,7 +285,7 @@
              * @returns {Promise<{validate: boolean}|{date: *, parseRule: *, url: *, validate: boolean, desc: *}>}
              */
             async function parseRuleFromIPFS(cid) {
-                const {date, desc, parseRule, url, pre, excludeWebsites} = (await node.dag.get(cid)).value;
+                const {date, desc, parseRule, url, pre, excludeWebsites} = (await NODE.dag.get(cid)).value;
                 if (parseRule && url && desc && date) {
                     return {validate: true, date, desc, parseRule, url, pre, excludeWebsites};
                 } else {
@@ -300,36 +328,169 @@
                 return rules;
             }
 
-            (async () => {
-                // let cidStr;
-                {
-                    //这里是一个插件的例子
-                    let cid = await node.dag.put(
-                        {
-                            url: '通用',
-                            desc: '通用聚合',
-                            parseRule: `return await (${example.toString()})(parseNextPages,$,log,Alpha_Script)`,
-                            excludeWebsites: ['https://xxxxx需要排除的网站'],
-                            date: '2020年9月30日'
-                        }
-                    );
-                    cid = await node.dag.put(
-                        {
-                            url: '这里可以写书写规则的网址',
-                            desc: '第二个通用聚合',
-                            parseRule: `return await (${example.toString()})(parseNextPages,$,log,Alpha_Script)`,
-                            excludeWebsites: ['https://xxxxx需要排除的网站'],
-                            date: '2020年9月30日',
-                            pre: cid.toString()
-                        }
-                    );
-                    let cidStr = cid.toLocaleString();
-                    // cidStr = cid.toLocaleString();
-                    console.log('你的插件分享的地址为：', cidStr);
+            async function pluginExample() {
+                //这里是一个插件的例子
+                let cid = await NODE.dag.put(
+                    {
+                        url: '通用',
+                        desc: '通用聚合',
+                        parseRule: `return await (${example.toString()})(parseNextPages,$,log,Alpha_Script)`,
+                        excludeWebsites: ['https://www.google.com.hk/search', 'https://greasyfork.org/', 'https://xxxxx需要排除的网站'],
+                        date: '2020年9月30日'
+                    }
+                );
+                cid = await NODE.dag.put(
+                    {
+                        url: '这里可以写书写规则的网址',
+                        desc: '第二个通用聚合',
+                        parseRule: `return await (${example.toString()})(parseNextPages,$,log,Alpha_Script)`,
+                        excludeWebsites: ['https://www.google.com.hk/search', 'https://greasyfork.org/', 'https://xxxxx需要排除的网站'],
+                        date: '2020年9月30日',
+                        pre: cid.toString()
+                    }
+                );
+                let cidStr = cid.toLocaleString();
+                // cidStr = cid.toLocaleString();
+                console.log('你的插件分享的地址为：', cidStr);
+                return cidStr;
+            }
+
+            let isPageResLoadComplete = false;
+
+            async function waitPageResLoadComplete() {
+                for (; ;) {
+                    if (isPageResLoadComplete) {
+                        log('加载成功');
+                        return;
+                    } else {
+                        await Alpha_Script.sleep(500);
+                    }
                 }
+            }
+
+            //热键
+            function aggregationDisplaySwitchHotkeys() {
+                $(document).keydown(function (e) {
+                    if (e.ctrlKey && e.shiftKey) {
+                        if (e.which == 76) {//L
+                            log("触发快捷键");
+                            aggregationDisplaySwitch();
+                        }
+                    }
+                });
+            }
+
+            aggregationDisplaySwitchHotkeys();
+
+            function aggregationDisplaySwitch() {
+                let aggregationIFRAMEDisplayCss = $('#aggregationIFRAME').css('display');
+                let aggregationIFRAMEDisplayCssCache = $('#aggregationIFRAME').attr('display-css-cache');
+                if (aggregationIFRAMEDisplayCss != 'none') {
+                    $('#aggregationIFRAME').css('display', 'none');
+
+                    $('body').children().each(function (index, element) {
+                        let displayCss = $(element).attr('display-css-cache');
+                        if (element.id != 'aggregationIFRAME') {
+                            $(element).css('display', displayCss);
+                        }
+                    });
+                } else {
+                    $('#aggregationIFRAME').css('display', aggregationIFRAMEDisplayCssCache);
+
+                    $('body').children().each(function (index, element) {
+                        if (element.id != 'aggregationIFRAME') {
+                            $(element).css('display', 'none');
+                        }
+                    });
+                }
+            }
+
+            window.addEventListener("message", async (event) => {
+                let data = event.data;
+                if (data.from == 'page') {
+                    if (data.method == 'obtainHtmlAsync') {
+                        let message = {result: '', from: 'monkey'};
+                        try {
+                            let html = await Alpha_Script.obtainHtmlAsync({url: data.url});
+                            message.result = html;
+                        } catch (e) {
+                            message.error = e;
+                        } finally {
+                            event.ports[0].postMessage(message);
+                        }
+                    } else if (data.method == 'pageResLoadComplete') {
+                        isPageResLoadComplete = true;
+                        let message = {result: '', from: 'monkey'};
+                        try {
+                            let html = event.data;
+                            log('html', html);
+                            message.result = 'page收到：：' + html;
+                        } catch (e) {
+                            message.error = e;
+                        } finally {
+                            event.ports[0].postMessage(message);
+                        }
+                    } else if (data.method == '聚合切换') {
+                        aggregationDisplaySwitch();
+
+                        let message = {result: '', from: 'monkey'};
+                        try {
+                            let html = event.data;
+                            log('html', html);
+                            message.result = 'page收到：：' + html;
+                        } catch (e) {
+                            message.error = e;
+                        } finally {
+                            event.ports[0].postMessage(message);
+                        }
+                    }
+                }
+            }, false);
+
+            function postMsg(msg) {
+                return new Promise((res, rej) => {
+                    const {port1, port2} = new MessageChannel();
+                    port1.onmessage = ({data}) => {
+                        if (data.from == 'page') {
+                            port1.close();
+                            if (data.error) {
+                                rej(data);
+                            } else {
+                                res(data);
+                            }
+                        }
+                    };
+                    msg.from = 'monkey';
+                    window.top.document.getElementById("aggregationIFRAME").contentWindow.postMessage(msg, window.location.origin, [port2]);
+                });
+            }
+
+            function MIMEObjectURL(txt, contentType = "text/html; charset=UTF-8") {
+                let txtBlob = new Blob([txt], {type: contentType});
+                let txtBlobUrl = URL.createObjectURL(txtBlob);
+                return txtBlobUrl;
+            }
+
+            function txt2Document(txt) {
+                let parser = new DOMParser();
+                let doc = parser.parseFromString(txt, "text/html");
+                let $doc = $(doc);
+                return {doc, $doc}
+            }
+
+            (async () => {
+                // let cidStr = await pluginExample();
+                await pluginExample();
                 // 你自己写的或者他人分享的cidPath;
-                let cidStr = "bafyreicfn763eq4qmjq4icgt6nwrcot7pu6otsiizowddeb3h7fassbo5y";
-                let rules = await obtainRulesFromIPFS(cidStr);
+                let cidStr = "bafyreielhccxya5tbcqoqdfxfqcn7qukjed2jejnbeaffikxm7ssdano2i";
+                setRuleCids(RULE_OFFICIAL_CID_KEY, cidStr);
+                let ruleCids = getRuleCids();
+                ruleCids.push(cidStr);
+                let rules = [];
+                for (const ruleCid of ruleCids) {
+                    let rule = await obtainRulesFromIPFS(ruleCid);
+                    rules = [...rules, ...rule];
+                }
                 log('当前规则总数：', rules.length);
                 for (let rule of rules) {
                     log('当前执行规则>> %s 编写规则参考地址：%s\r\n 规则内容：%s', rule.desc, rule.url, rule.parseRule);
@@ -346,15 +507,89 @@
                     imgs = imgs.distinct();
                     if (imgs.length > 0) {
                         log('规则找到图片');
-                        let containerHtml = imgs.map((e, i) => `<div id="c_${i}"></div>`).join("");
-                        let inject = `<div>${containerHtml}</div><script type="application/javascript">${imageWidth.toString()}${loadHidden.toString()}</script>`;
-                        $('script').remove();
-                        $('body').html(inject);
-                        await Alpha_Script.asyncPool(10, imgs, async function (src, i) {
+                        let aggregationTemplateHtml, aggregationTemplateCss, aggregationTemplateJs;
+                        if (ENV_STATUS == ENV_DEV_STATUS) {
+                            aggregationTemplateHtml = await Alpha_Script.obtainHtmlAsync({url: 'http://127.0.0.1:8081/static/imageAggregation/aggregationTemplate.html'});
+                            aggregationTemplateCss = await Alpha_Script.obtainHtmlAsync({url: 'http://127.0.0.1:8081/static/imageAggregation/css/aggregationTemplate.css'});
+                            aggregationTemplateJs = await Alpha_Script.obtainHtmlAsync({url: 'http://127.0.0.1:8081/static/imageAggregation/js/aggregationTemplate.js'});
+                        } else {
+                            let aggregationTemplateHtmlCid, aggregationTemplateJsCid, aggregationTemplateCssCid;
+                            aggregationTemplateHtmlCid = 'bafyreicncdsi25po7rij4oh355v7w7fjfu3da4ncpkxp2gwwoxucb5ulri';
+                            aggregationTemplateJsCid = 'bafyreiblvxkpjinurhnxgwznsgmtap37vmd7l3cvbcqf3wul4ll2bb7fmy';
+                            aggregationTemplateCssCid = 'bafyreihws6twoxkhqoc3klnm3lucsamss3bki4akrpnwexp6u5m5thzpva';
+                            aggregationTemplateHtml = (await NODE.dag.get(aggregationTemplateHtmlCid)).value.data;
+                            aggregationTemplateCss = (await NODE.dag.get(aggregationTemplateCssCid)).value.data;
+                            aggregationTemplateJs = (await NODE.dag.get(aggregationTemplateJsCid)).value.data;
+                        }
+
+
+                        {
+                            let cid = await NODE.dag.put(
+                                {
+                                    data: aggregationTemplateHtml,
+                                    desc: 'aggregationTemplate.html',
+                                }
+                            );
+                            log('aggregationTemplate.html cid: ', cid.toString());
+                            cid = await NODE.dag.put(
+                                {
+                                    data: aggregationTemplateJs,
+                                    desc: 'aggregationTemplate.js',
+                                }
+                            );
+                            log('aggregationTemplate.js cid: ', cid.toString());
+                            cid = await NODE.dag.put(
+                                {
+                                    data: aggregationTemplateCss,
+                                    desc: 'aggregationTemplate.css',
+                                }
+                            );
+                            log('aggregationTemplate.css cid: ', cid.toString());
+                        }
+
+                        if (ENV_STATUS == ENV_DEV_STATUS) {
+                            console.log('aggregationTemplateHtml', aggregationTemplateHtml);
+                            console.log('aggregationTemplateCss', aggregationTemplateCss);
+                            console.log('aggregationTemplateJs', aggregationTemplateJs);
+                        }
+
+
+                        let aggregationTemplateCssBlobUrl = MIMEObjectURL(aggregationTemplateCss, 'text/css; charset=utf-8');
+                        let aggregationTemplateJsBlobUrl = MIMEObjectURL(aggregationTemplateJs, 'application/javascript; charset=utf-8');
+
+                        {
+                            let {doc, $doc} = txt2Document(aggregationTemplateHtml);
+                            $doc.find('head').append(`<link rel="stylesheet" href="${aggregationTemplateCssBlobUrl}"/>`);
+                            $doc.find('body').append(`<script src="${aggregationTemplateJsBlobUrl}"></script>`);
+
+                            let outerHTML = doc.querySelector('html').outerHTML;
+                            aggregationTemplateHtml = outerHTML;
+                        }
+                        if (ENV_STATUS == ENV_DEV_STATUS) {
+                            console.log('final aggregationTemplateHtml', aggregationTemplateHtml);
+                        }
+
+                        let aggregationTemplateHtmlBlobUrl = MIMEObjectURL(aggregationTemplateHtml);
+
+                        $('body').append(`<iframe id="aggregationIFRAME" src="${aggregationTemplateHtmlBlobUrl}" frameborder="0" scrolling="no" width="100%"></iframe>`);
+                        await waitPageResLoadComplete();
+
+                        $('body').children().each(function (index, element) {
+                            let displayCss = $(element).css('display');
+                            $(element).attr('display-css-cache', displayCss);
+                            if (element.id != 'aggregationIFRAME') {
+                                $(element).css('display', 'none');
+                            }
+                        });
+
+                        let promiseAllResult = await Alpha_Script.asyncPool(10, imgs, async function (src, i) {
                             let blob = await downloadImg2Blob(src);
                             let url = URL.createObjectURL(blob);
-                            $(`#c_${i}`).append(`<img src="${url}" onload="loadHidden(this)"/>`);
+                            // $(`#c_${i}`).append(`<img src="${src}" onload="loadHidden(this)"/>`);
+                            return {url, blob};
                         });
+                        let imgBlobSrcs = promiseAllResult.filter(p => p.status == 'fulfilled').map(p => p.value);
+                        await postMsg({method: 'images', result: imgBlobSrcs});
                         log('规则执行完毕');
                         break;
                         // await Alpha_Script.sleep(5000);
@@ -417,7 +652,15 @@
             GM_registerMenuCommand("规则列表", ruleListFunc, "R");
 
             function ruleListFunc() {
-                log("我是规则列表");
+                let ruleCids = getRuleCids();
+                let delBtn = '<button type="button" class=" btn-sm btn-warning">\n' +
+                    '                删除\n' +
+                    '            </button>';
+                let inject = ruleCids.map(ruleCid => `<div><span>${ruleCid}</span><span>${delBtn}</span></div>`).join("<br/>");
+                $('script').remove();
+                $('head').append('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/4.3.1/cerulean/bootstrap.min.css"/>');
+                $('body').html(inject);
+                $('body').append('<script src="https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>');
             }
         })();
     }
