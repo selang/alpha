@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         聚合网页(美女图聚合展示演化而来)by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.07
+// @version      0.08
 // @description  目标是聚合网页，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include      /https?\:\/\/*/
@@ -104,7 +104,7 @@
                         "Accept-Encoding:gzip, deflate, sdch\n" +
                         "Accept-Language:zh-CN,zh;q=0.8\n" +
                         "Referer:" + window.location.href + "\n" +
-                        "User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+                        `User-Agent:${window.navigator.userAgent}`
                     );
                     options.method = options.method || 'GET';
                     let responseType = options.responseType;
@@ -234,12 +234,19 @@
                     nextPageUrl = validateUrlResult.url;
                     log(nextPageUrl);
                     let html = await Alpha_Script.obtainHtmlAsync({url: nextPageUrl});
-                    nextPages.push({
+                    // console.log('nextPage Html==>', html);
+                    let nextPageItem = {
                         url: nextPageUrl,
                         html
-                    });
-                    let {$doc} = txt2Document(html);
-                    nextEs = $doc.find(nextSelector);
+                    };
+                    let duplicateNextPage = nextPages.filter(item => item.url == nextPageItem.url);
+                    if (duplicateNextPage.length > 0) {
+                        break
+                    } else {
+                        nextPages.push(nextPageItem);
+                        let {$doc} = txt2Document(html);
+                        nextEs = $doc.find(nextSelector);
+                    }
                     // await Alpha_Script.sleep(1000);
                 }
                 log('解析下一页结束...');
@@ -615,7 +622,7 @@
                         // "Accept-Encoding": "gzip, deflate, sdch",
                         // "Accept-Language": "zh-CN,zh;q=0.8",
                         "Referer": window.location.href,
-                        "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+                        "User-Agent": window.navigator.userAgent
                     },
                     responseType: 'blob'
                 });

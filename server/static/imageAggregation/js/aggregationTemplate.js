@@ -257,7 +257,7 @@ if (typeof angular !== 'undefined') {
             link: function (scope, iElement, attrs) {
                 const _resizeObserver = new ResizeObserver(async entries => {
                     let img = entries[0].target.querySelector('img');
-                    console.log('img.width, img.height', img.width, img.height);
+                    // console.log('img.width, img.height', img.width, img.height);
                     let {display} = imgHidden(img);
                     _resizeObserver.unobserve(entries[0].target);
                 })
