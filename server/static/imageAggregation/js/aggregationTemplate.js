@@ -296,7 +296,6 @@ if (typeof angular !== 'undefined') {
         };
     }
 
-    let maxWidth = 0;
     const blobCache = [];
     app.controller("myCtrl", function ($scope) {
         $scope.hotKey = {};

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         聚合网页(美女图聚合展示演化而来)by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.08
+// @version      0.09
 // @description  目标是聚合网页，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include      /https?\:\/\/*/
@@ -26,6 +26,9 @@
         const NODE = await Ipfs.create(({repo: 'ipfs-monkey-aggregation'}));
         const RULE_CID_KEY = '聚合网页RULE_CID_KEY';
         const RULE_OFFICIAL_CID_KEY = '聚合网页OFFICIAL_RULE_CID_KEY';
+        const AGGREGATION_TEMPLATE_HTML_KEY = "聚合网页OFFICIAL_AGGREGATION_TEMPLATE_HTML_KEY";
+        const AGGREGATION_TEMPLATE_JS_KEY = "聚合网页OFFICIAL_AGGREGATION_TEMPLATE_JS_KEY";
+        const AGGREGATION_TEMPLATE_CSS_KEY = "聚合网页OFFICIAL_AGGREGATION_TEMPLATE_CSS_KEY";
         const ENV_DEV_STATUS = 'DEV';
         const ENV_PRODUCT_STATUS = 'PRODUCT';
         const ENV_STATUS = ENV_PRODUCT_STATUS;
@@ -69,6 +72,14 @@
             return GM_setValue(key, value);
         }
 
+        function putCache(key, value) {
+            return GM_setValue(key, value);
+        }
+
+        function getCache(key) {
+            return GM_getValue(key);
+        }
+
         const AsyncFunction = Object.getPrototypeOf(async function () {
         }).constructor;
 
@@ -100,27 +111,39 @@
                     throw new Error("参数不合法");
                 }
                 return new Promise(resolve => {
-                    options.headers = options.headers || Alpha_Script.parseHeaders("Accept:image/webp,image/*,*/*;q=0.8\n" +
-                        "Accept-Encoding:gzip, deflate, sdch\n" +
-                        "Accept-Language:zh-CN,zh;q=0.8\n" +
-                        "Referer:" + window.location.href + "\n" +
-                        `User-Agent:${window.navigator.userAgent}`
-                    );
+                    options.headers = {
+                        ...Alpha_Script.parseHeaders("Accept:image/webp,image/*,*/*;q=0.8\n" +
+                            "Accept-Encoding:gzip, deflate, sdch\n" +
+                            "Accept-Language:zh-CN,zh;q=0.8\n" +
+                            "Referer:" + window.location.href + "\n" +
+                            `User-Agent:${window.navigator.userAgent}`
+                        ), ...options.headers
+                    };
                     options.method = options.method || 'GET';
                     let responseType = options.responseType;
                     switch (responseType) {
                         case "blob":
                             options.onload = options.onload || function (response) {
-                                if (response && response.status && response.status >= 200 && response.status < 300) {
-                                    resolve(response);
+                                if (response && typeof response.status != "undefined") {
+                                    let status = response.status;
+                                    if (status >= 200 && status < 300) {
+                                        resolve({status, response});
+                                    } else if (status == 304) {
+                                        resolve({status, response});
+                                    }
                                 }
                             }
                             break;
                         default:
                             options.onload = options.onload || function (response) {
-                                if (response && response.status && response.status >= 200 && response.status < 300) {
-                                    let html = response.responseText;
-                                    resolve(html);
+                                if (response && typeof response.status != "undefined") {
+                                    let status = response.status;
+                                    if (status >= 200 && status < 300) {
+                                        let html = response.responseText;
+                                        resolve({status, response, html});
+                                    } else if (status == 304) {
+                                        resolve({status, response});
+                                    }
                                 }
                             }
                     }
@@ -186,6 +209,44 @@
             }
         };
 
+        /**
+         * 无变化则取缓存，有变化则缓存
+         * @param cacheKey
+         * @param options 数据结构里至少要有{url:'xx'}
+         * @returns {Promise<*>}
+         */
+        async function obtainDataByUrl(cacheKey, options) {
+            let ret = '';
+            let cache = getCache(cacheKey);
+            if (typeof cache != "undefined") {
+                let {etag, html} = JSON.parse(cache);
+                ret = html;
+                if (typeof etag != 'undefined') {
+                    let {status, html, response} = await Alpha_Script.obtainHtmlAsync({
+                        ...options, headers: {
+                            'If-None-Match': etag
+                        }
+                    });
+                    if (status != 304) {
+                        let etag = response.headers['etag'];
+                        putCache(cacheKey, JSON.stringify({
+                            etag, html
+                        }))
+                        ret = html;
+                    }
+                }
+            } else {
+                let {status, html, response} = await Alpha_Script.obtainHtmlAsync(options);
+                let responseHeaders = Alpha_Script.parseHeaders(response.responseHeaders);
+                let {etag} = responseHeaders;
+                putCache(cacheKey, JSON.stringify({
+                    etag, html
+                }))
+                ret = html;
+            }
+            return ret;
+        };
+
         (function () {
             'use strict';
             priorityLog('欢迎进群：455809302交流。一起玩。');
@@ -233,19 +294,24 @@
                     }
                     nextPageUrl = validateUrlResult.url;
                     log(nextPageUrl);
-                    let html = await Alpha_Script.obtainHtmlAsync({url: nextPageUrl});
-                    // console.log('nextPage Html==>', html);
-                    let nextPageItem = {
-                        url: nextPageUrl,
-                        html
-                    };
-                    let duplicateNextPage = nextPages.filter(item => item.url == nextPageItem.url);
-                    if (duplicateNextPage.length > 0) {
-                        break
+                    let {html} = await Alpha_Script.obtainHtmlAsync({url: nextPageUrl});
+                    if (typeof html != "undefined") {
+                        // console.log('nextPage Html==>', html);
+                        let nextPageItem = {
+                            url: nextPageUrl,
+                            html
+                        };
+                        let duplicateNextPage = nextPages.filter(item => item.url == nextPageItem.url);
+                        if (duplicateNextPage.length > 0) {
+                            break
+                        } else {
+                            nextPages.push(nextPageItem);
+                            let {$doc} = txt2Document(html);
+                            nextEs = $doc.find(nextSelector);
+                        }
                     } else {
-                        nextPages.push(nextPageItem);
-                        let {$doc} = txt2Document(html);
-                        nextEs = $doc.find(nextSelector);
+                        console.log('nextPage 未获取到内容。nextPageUrl==>', nextPageUrl);
+                        break;
                     }
                     // await Alpha_Script.sleep(1000);
                 }
@@ -418,7 +484,7 @@
                     if (data.method == 'obtainHtmlAsync') {
                         let message = {result: '', from: 'monkey'};
                         try {
-                            let html = await Alpha_Script.obtainHtmlAsync({url: data.url});
+                            let {html} = await Alpha_Script.obtainHtmlAsync({url: data.url});
                             message.result = html;
                         } catch (e) {
                             message.error = e;
@@ -523,9 +589,9 @@
                         let aggregationTemplateHtml, aggregationTemplateCss, aggregationTemplateJs;
                         //国内IPFS不稳定，临时处理
                         if (true || ENV_STATUS == ENV_DEV_STATUS) {
-                            aggregationTemplateHtml = await Alpha_Script.obtainHtmlAsync({url: `${tempHost}/static/imageAggregation/aggregationTemplate.html`});
-                            aggregationTemplateCss = await Alpha_Script.obtainHtmlAsync({url: `${tempHost}/static/imageAggregation/css/aggregationTemplate.css`});
-                            aggregationTemplateJs = await Alpha_Script.obtainHtmlAsync({url: `${tempHost}/static/imageAggregation/js/aggregationTemplate.js`});
+                            aggregationTemplateHtml = await obtainDataByUrl(AGGREGATION_TEMPLATE_HTML_KEY, {url: `${tempHost}/static/imageAggregation/aggregationTemplate.html`});
+                            aggregationTemplateCss = await obtainDataByUrl(AGGREGATION_TEMPLATE_CSS_KEY, {url: `${tempHost}/static/imageAggregation/css/aggregationTemplate.css`});
+                            aggregationTemplateJs = await obtainDataByUrl(AGGREGATION_TEMPLATE_JS_KEY, {url: `${tempHost}/static/imageAggregation/js/aggregationTemplate.js`});
                         } else {
                             let aggregationTemplateHtmlCid, aggregationTemplateJsCid, aggregationTemplateCssCid;
                             aggregationTemplateHtmlCid = 'bafyreicncdsi25po7rij4oh355v7w7fjfu3da4ncpkxp2gwwoxucb5ulri';
@@ -614,7 +680,7 @@
             })();
 
             async function downloadImg2Blob(imgSrc) {
-                let response = await Alpha_Script.obtainHtmlAsync({
+                let {response} = await Alpha_Script.obtainHtmlAsync({
                     url: imgSrc,
                     method: 'GET',
                     headers: {
@@ -627,7 +693,7 @@
                     responseType: 'blob'
                 });
                 let responseHeaders = Alpha_Script.parseHeaders(response.responseHeaders);
-                let contentType = responseHeaders['Content-Type'];
+                let contentType = responseHeaders['content-type'];
                 if (!contentType) {
                     contentType = "image/png";
                 }
