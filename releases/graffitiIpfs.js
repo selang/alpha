@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         聚合网页(美女图聚合展示演化而来)by SeLang
 // @namespace    http://cmsv1.findmd5.com/
-// @version      0.06
+// @version      0.07
 // @description  目标是聚合网页，省去翻页烦恼。有需要聚合的网址请反馈。 QQ群号：455809302,点击链接加入群【油猴脚本私人定制】：https://jq.qq.com/?_wv=1027&k=45p9bea
 // @author       selang
 // @include      /https?\:\/\/*/
@@ -507,11 +507,18 @@
                     imgs = imgs.distinct();
                     if (imgs.length > 0) {
                         log('规则找到图片');
-                        let aggregationTemplateHtml, aggregationTemplateCss, aggregationTemplateJs;
+                        let tempHost;
                         if (ENV_STATUS == ENV_DEV_STATUS) {
-                            aggregationTemplateHtml = await Alpha_Script.obtainHtmlAsync({url: 'http://127.0.0.1:8081/static/imageAggregation/aggregationTemplate.html'});
-                            aggregationTemplateCss = await Alpha_Script.obtainHtmlAsync({url: 'http://127.0.0.1:8081/static/imageAggregation/css/aggregationTemplate.css'});
-                            aggregationTemplateJs = await Alpha_Script.obtainHtmlAsync({url: 'http://127.0.0.1:8081/static/imageAggregation/js/aggregationTemplate.js'});
+                            tempHost = 'http://127.0.0.1:8081';
+                        } else {
+                            tempHost = 'https://cmsv1.findmd5.com';
+                        }
+                        let aggregationTemplateHtml, aggregationTemplateCss, aggregationTemplateJs;
+                        //国内IPFS不稳定，临时处理
+                        if (true || ENV_STATUS == ENV_DEV_STATUS) {
+                            aggregationTemplateHtml = await Alpha_Script.obtainHtmlAsync({url: `${tempHost}/static/imageAggregation/aggregationTemplate.html`});
+                            aggregationTemplateCss = await Alpha_Script.obtainHtmlAsync({url: `${tempHost}/static/imageAggregation/css/aggregationTemplate.css`});
+                            aggregationTemplateJs = await Alpha_Script.obtainHtmlAsync({url: `${tempHost}/static/imageAggregation/js/aggregationTemplate.js`});
                         } else {
                             let aggregationTemplateHtmlCid, aggregationTemplateJsCid, aggregationTemplateCssCid;
                             aggregationTemplateHtmlCid = 'bafyreicncdsi25po7rij4oh355v7w7fjfu3da4ncpkxp2gwwoxucb5ulri';

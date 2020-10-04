@@ -1,0 +1,60 @@
+<html ng-app="myApp">
+<head>
+    <base href="http://127.0.0.1:8081">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/4.3.1/cerulean/bootstrap.min.css"/>
+    <!--    <link rel="stylesheet" href="/static/imageAggregation/css/aggregationTemplate.css"/>-->
+</head>
+<body>
+<div class="container-fluid inputStyle" ng-controller="myCtrl">
+    <div class="row">
+        <div class="col-12">
+            <button type="button" class=" btn-sm btn-info" ng-click="captureAndDownload()">
+                截图并下载
+            </button>
+            <span>&nbsp;&nbsp;</span>
+            <button type="button" class=" btn-sm btn-warning" ng-click="packageAndDownload()">
+                打包下载聚合图片
+            </button>
+            <span>&nbsp;&nbsp;</span>
+            <button type="button" class=" btn-sm btn-dark" ng-click="aggregatonBtnSwitch()"
+                    my-text="aggregatonBtnSwitchDisplay">
+
+            </button>
+            ctrl+shift+L ：触发聚合显示/聚合隐藏
+            <!--            <span>&nbsp;&nbsp;</span>-->
+            <!--            <button type="button" class=" btn-sm btn-dark">-->
+            <!--                规则列表-->
+            <!--            </button>-->
+            <!--            <span>&nbsp;&nbsp;</span>-->
+            <!--            <button type="button" class=" btn-sm btn-info" ng-click="makeAggregatonTorrent()">-->
+            <!--                做种-->
+            <!--            </button>-->
+            <!--            <span>&nbsp;&nbsp;</span>-->
+            <!--            <label ng-if="infoHash">分享：<a href="/static/btorrent/index.html#{{infoHash}}" target="_blank" >链接</a></label>-->
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-2"></div>
+        <div class="col-sm-8" id="c_container">
+            <div ng-repeat="(key, value) in images">
+                <div class="sl-c-pic" my-resize-observer><img src="{{value}}" onload="loadHidden(this)"></div>
+            </div>
+        </div>
+        <div class="col-sm-2"></div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/3.0.2/dexie.min.js"></script>
+<script src="https://cdn.jsdelivr.net/webtorrent/latest/webtorrent.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.5.3/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/ipfs/0.50.2/index.min.js"></script>-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.0/angular.min.js"></script>
+
+<!--<script src="/static/imageAggregation/js/aggregationTemplate.js"></script>-->
+</body>
+</html>
